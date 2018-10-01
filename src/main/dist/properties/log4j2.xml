@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <RollingFile name="status" append="true" fileName="logs/status.log" filePattern="logs/status.log.%d{yyyy-MM-dd}">
+            <PatternLayout pattern="%d %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="status_annot" append="true" fileName="logs/status_annot.log" filePattern="logs/status_annot.log.%d{yyyy-MM-dd}">
+            <PatternLayout pattern="%d %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="omim_inserted" append="true" fileName="logs/inserted.log" filePattern="logs/inserted.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="omim_deleted" append="true" fileName="logs/deleted.log" filePattern="logs/deleted.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="multis" append="true" fileName="logs/multis.log" filePattern="logs/multis.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="annots" append="true" fileName="logs/annots.log" filePattern="logs/annots.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="spring" append="true" fileName="logs/spring.log" filePattern="logs/spring.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+        <!-- daily -->
+        <Logger name="status" level="info" additivity="false">
+            <AppenderRef ref="status"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="status_annot" level="info" additivity="false">
+            <AppenderRef ref="status_annot"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <!-- monthly -->
+        <Logger name="omim_inserted" level="debug" additivity="false">
+            <AppenderRef ref="omim_inserted"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="omim_deleted" level="debug" additivity="false">
+            <AppenderRef ref="omim_deleted"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="multis" level="debug" additivity="false">
+            <AppenderRef ref="multis"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="annots" level="debug" additivity="false">
+            <AppenderRef ref="annots"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+
+        <Logger name="org.springframework" level="info" additivity="false">
+            <AppenderRef ref="spring"/>
+            <AppenderRef ref="Console" level="warn"/>
+        </Logger>
+    </Loggers>
+</Configuration>
