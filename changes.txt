@@ -1,5 +1,6 @@
 Dec 19, 2018, v. 1.4.6
   updated dependencies and build.gradle
+  annotation loader: suppressed spurious warnings about INVALID OMIM ID for phenotypic series ids (OMIM:PSxxx)
 
 Oct 1, 2018, v. 1.4.5
   moved from subversion to github

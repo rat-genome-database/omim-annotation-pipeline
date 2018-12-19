@@ -69,7 +69,8 @@ public class AnnotationLoader {
 
             void findOmimIds(OmimAnnotRecord rec) throws Exception {
                 for(TermSynonym syn: dao.getTermSynonyms(rec.term.getAccId()) ) {
-                    if( syn.getName().startsWith("OMIM:") ) {
+                    // skip phenotypic series: OMIM:PSxxxxx
+                    if( syn.getName().startsWith("OMIM:") && !syn.getName().startsWith("OMIM:PS")) {
                         // skip any zeroes
                         try {
                             int omimId = Integer.parseInt(syn.getName().substring(5).trim());
