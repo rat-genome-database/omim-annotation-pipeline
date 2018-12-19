@@ -1,3 +1,11 @@
+// create a runnable jar with jar dependencies stored in lib subdirectory
+tasks.whenTaskAdded { task ->
+    ['startScripts', 'distTar'].each { String skipTaskName ->
+        if (task.name.contains(skipTaskName)) {
+            task.enabled = false
+        }
+    }
+}
 apply plugin: 'java'
 apply plugin: 'application'
 
@@ -18,23 +26,14 @@ dependencies {
     compile 'commons-dbcp:commons-dbcp:1.4'
 	compile 'commons-net:commons-net:3.6'
 	compile 'org.apache.httpcomponents:httpclient:4.5.6'
-    compile 'org.apache.logging.log4j:log4j-1.2-api:2.8.2' // log4j --> log4j2 bridge for FileDownloader in rgdcore
-    compile 'org.apache.logging.log4j:log4j-api:2.8.2'
-    compile 'org.apache.logging.log4j:log4j-core:2.8.2'
-    compile 'org.springframework:spring-beans:5.0.9.RELEASE'
-    compile 'org.springframework:spring-jdbc:5.0.9.RELEASE'
+    compile 'org.apache.logging.log4j:log4j-1.2-api:2.9.1' // log4j --> log4j2 bridge for FileDownloader in rgdcore
+    compile 'org.apache.logging.log4j:log4j-api:2.9.1'
+    compile 'org.apache.logging.log4j:log4j-core:2.9.1'
+    compile 'org.springframework:spring-beans:5.1.3.RELEASE'
+    compile 'org.springframework:spring-jdbc:5.1.3.RELEASE'
     compile 'com.oracle:ojdbc6:11.2.0.4.0-atlassian-hosted'
 	
     compile fileTree(dir: 'lib', include: '*.jar')
-}
-
-// overrides below are needed only for jenkins in RGD
-// otherwise the names of build scripts and distros will default to the jenkins job name, f.e. 'dev_CTDDisease'
-//   overrides below will guarantee than on both DEV and other job groups, the generated dfiles/directories are the same
-//   as the project name
-
-startScripts {
-    applicationName = myAppName
 }
 
 jar {
@@ -43,7 +42,9 @@ jar {
         attributes(
             'Built-By': System.getProperty('user.name'),
             'Built-Date': new Date(),
-            'Built-JDK': System.getProperty('java.version')
+            'Built-JDK': System.getProperty('java.version'),
+            'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+            'Main-Class': mainClassName
         )
     }
 }
@@ -53,3 +54,12 @@ distributions {
         baseName = myAppName
     }
 }
+
+task createDistro(type: Copy) {
+    def zipFile = file('build/distributions/'+myAppName+'.zip')
+    def outputDir = file("build/install")
+
+    from zipTree(zipFile)
+    into outputDir
+}
+createDistro.dependsOn assembleDist
