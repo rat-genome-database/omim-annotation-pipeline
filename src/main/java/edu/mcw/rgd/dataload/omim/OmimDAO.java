@@ -34,6 +34,10 @@ public class OmimDAO {
     OntologyXDAO ontologyXDAO = new OntologyXDAO();
     AnnotationDAO annotationDAO = new AnnotationDAO();
 
+    public String getConnectionInfo() {
+        return geneDAO.getConnectionInfo();
+    }
+
     /**
      * get active human genes given NCBI gene id
      * @param geneId NCBI gene id
@@ -223,9 +227,9 @@ public class OmimDAO {
 
         List<Annotation> staleAnnots = annotationDAO.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "D");
 
-        logStatus.info("total annotation count: "+annotCount);
-        logStatus.info("stale annotation delete limit ("+staleAnnotDeleteThresholdStr+"): "+staleAnnotDeleteLimit);
-        logStatus.info("stale annotations to be deleted: "+staleAnnots.size());
+        logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
+        logStatus.info("   stale annotation delete limit ("+staleAnnotDeleteThresholdStr+"): "+staleAnnotDeleteLimit);
+        logStatus.info("   stale annotations to be deleted: "+staleAnnots.size());
 
         if( staleAnnots.size()> staleAnnotDeleteLimit ) {
             logStatus.warn("*** DELETE of stale annots aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!");

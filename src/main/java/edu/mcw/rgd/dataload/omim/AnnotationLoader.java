@@ -30,7 +30,8 @@ public class AnnotationLoader {
 
     public void run(Logger log, int qcThreadCount) throws Exception {
 
-        log.info(getVersion());
+        log.info("   "+dao.getConnectionInfo());
+        log.info(getVersion()+"\n");
 
         Date dtStart = new Date();
 
@@ -79,7 +80,7 @@ public class AnnotationLoader {
                             }
                             rec.omimIds.add(Integer.toString(omimId));
                         } catch(NumberFormatException e) {
-                            System.out.println("*** WARN: INVALID OMIM ID: "+syn.getName()+" for "+rec.term.getAccId());
+                            log.warn("*** WARN: INVALID OMIM ID: "+syn.getName()+" for "+rec.term.getAccId());
                         }
                     }
                 }
@@ -212,8 +213,6 @@ public class AnnotationLoader {
 
         // dump counter statistics
         manager.dumpCounters(log);
-
-        log.info("--SUCCESS--");
     }
 
     public void setVersion(String version) {

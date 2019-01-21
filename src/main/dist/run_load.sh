@@ -11,4 +11,4 @@ fi
 
 $APPHOME/_run.sh -qc_thread_count=6
 
-mailx -s "[$SERVER] OMIM pipeline OK!" $EMAIL_LIST < $APPHOME/logs/status.log
+mailx -s "[$SERVER] OMIM pipeline OK!" $EMAIL_LIST < $APPHOME/logs/summary.log

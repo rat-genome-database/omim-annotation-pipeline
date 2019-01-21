@@ -5,18 +5,25 @@
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
 
-        <RollingFile name="status" append="true" fileName="logs/status.log" filePattern="logs/status.log.%d{yyyy-MM-dd}">
+        <RollingFile name="status" append="true" fileName="logs/status.log" filePattern="logs/status.log.%d{yyyy-MM}">
             <PatternLayout pattern="%d %p [%c] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
-        <RollingFile name="status_annot" append="true" fileName="logs/status_annot.log" filePattern="logs/status_annot.log.%d{yyyy-MM-dd}">
+        <File name="summary" append="false" fileName="logs/summary.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
+
+        <RollingFile name="status_annot" append="true" fileName="logs/status_annot.log" filePattern="logs/status_annot.log.%d{yyyy-MM}">
             <PatternLayout pattern="%d %p [%c] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
+        <File name="summary_annot" append="false" fileName="logs/summary_annot.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
 
         <RollingFile name="omim_inserted" append="true" fileName="logs/inserted.log" filePattern="logs/inserted.log.%d{yyyy-MM}">
             <PatternLayout pattern="[%d] - %m%n"/>
@@ -58,10 +65,12 @@
         <!-- daily -->
         <Logger name="status" level="info" additivity="false">
             <AppenderRef ref="status"/>
+            <AppenderRef ref="summary"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
         <Logger name="status_annot" level="info" additivity="false">
             <AppenderRef ref="status_annot"/>
+            <AppenderRef ref="summary_annot"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
         <!-- monthly -->

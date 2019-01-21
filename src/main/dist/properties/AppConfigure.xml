@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline v.1.4.6, Dec 19, 2018"/>
+        <property name="version" value="OmimPipeline v.1.4.7, Jan 21, 2019"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
@@ -13,7 +13,6 @@
 
     <!-- in Feb 2016, reregistration was needed, and download links changed -->
 	<bean id="preProcessor" class="edu.mcw.rgd.dataload.omim.PreProcessor">
-        <property name="version" value="OmimFileParser v.1.1.4, Jun 2, 2017"/>
         <property name="mim2geneFile" value="http://omim.org/static/omim/data/mim2gene.txt"/>
         <property name="morbidmapFile" value="http://data.omim.org/downloads/3XqIoOKuTw6AchXT56nFYQ/morbidmap.txt"/>
         <property name="genemapFile" value="http://data.omim.org/downloads/3XqIoOKuTw6AchXT56nFYQ/genemap.txt"/>

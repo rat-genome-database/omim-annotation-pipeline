@@ -2,24 +2,19 @@ package edu.mcw.rgd.dataload.omim;
 
 import edu.mcw.rgd.pipelines.RecordPreprocessor;
 import edu.mcw.rgd.process.FileDownloader;
+import edu.mcw.rgd.process.Utils;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
 
 /**
- * Created by IntelliJ IDEA.
- * User: mtutaj
- * Date: Apr 28, 2011
- * Time: 5:30:25 PM
+ * @author mtutaj
+ * @since Apr 28, 2011
  */
 public class PreProcessor extends RecordPreprocessor {
 
-    private String version;
     private String mim2geneFile;
     private String morbidmapFile;
     private String localMorbidMapFile;
@@ -53,7 +48,7 @@ public class PreProcessor extends RecordPreprocessor {
     void processMim2Gene(String fileName, final Map<String, OmimRecord> records) throws Exception {
 
         // this is a text file, tab separated
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(fileName))));
+        BufferedReader reader = Utils.openReader(fileName);
         String line;
         while( (line=reader.readLine())!=null ) {
             // skip comment lines
@@ -82,7 +77,7 @@ public class PreProcessor extends RecordPreprocessor {
     void processMorbidMap(String fileName, final Map<String, OmimRecord> records) throws Exception {
 
         // this is a text file, tab separated
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(fileName))));
+        BufferedReader reader = Utils.openReader(fileName);
         String line;
         while( (line=reader.readLine())!=null ) {
             // skip comment lines
@@ -177,14 +172,6 @@ public class PreProcessor extends RecordPreprocessor {
 
     public String getMorbidmapFile() {
         return morbidmapFile;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     public void setGenemapFile(String genemapFile) {

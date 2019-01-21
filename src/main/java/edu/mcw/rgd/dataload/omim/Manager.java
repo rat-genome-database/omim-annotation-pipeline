@@ -9,6 +9,8 @@ import org.springframework.core.io.FileSystemResource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author mtutaj
@@ -42,6 +44,8 @@ public class Manager {
 
         Logger logStatus = LogManager.getLogger(runAnnotationPipeline ? "status_annot" : "status");
         logStatus.info(manager.getVersion());
+        SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        logStatus.info("   started at "+sdt.format(new Date(time0)));
 
         try {
             if (runAnnotationPipeline) {
@@ -60,7 +64,7 @@ public class Manager {
             System.err.println(err);
         }
 
-        logStatus.info("=== OK === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis()));
+        logStatus.info("=== OK === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis())+"\n");
     }
 
     public void setVersion(String version) {

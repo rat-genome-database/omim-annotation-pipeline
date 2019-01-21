@@ -11,4 +11,4 @@ fi
 
 $APPHOME/_run.sh -annotations -qc_thread_count=6
 
-mailx -s "[$SERVER] Omim Annotation pipeline OK" $EMAIL_LIST < $APPHOME/logs/status_annot.log
+mailx -s "[$SERVER] Omim Annotation pipeline OK" $EMAIL_LIST < $APPHOME/logs/summary_annot.log

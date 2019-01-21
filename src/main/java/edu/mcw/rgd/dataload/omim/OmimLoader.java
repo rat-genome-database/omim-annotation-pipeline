@@ -14,12 +14,12 @@ public class OmimLoader {
 
     void run(Logger log, int qcThreadCount) throws Exception {
 
-        log.info(getVersion());
-        log.info(preProcessor.getVersion());
-
         OmimDAO dao = new OmimDAO();
         qcProcessor.setDao(dao);
         loadProcessor.setDao(dao);
+        log.info("   "+dao.getConnectionInfo());
+
+        log.info(getVersion());
 
         PipelineManager manager = new PipelineManager();
         manager.addPipelineWorkgroup(preProcessor, "PP", 1, 1000);
@@ -29,8 +29,6 @@ public class OmimLoader {
 
         // dump counter statistics
         manager.dumpCounters(log);
-
-        log.info("--SUCCESS--");
     }
 
     public void setVersion(String version) {
