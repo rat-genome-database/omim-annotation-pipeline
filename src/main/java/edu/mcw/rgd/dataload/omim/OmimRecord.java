@@ -12,7 +12,6 @@ import java.util.Set;
 /**
  * @author mtutaj
  * Date: Apr 29, 2011
- * Time: 8:45:07 AM
  * custom omim data, both read from incoming data and from rgd database
  */
 public class OmimRecord extends PipelineRecord {
@@ -23,11 +22,12 @@ public class OmimRecord extends PipelineRecord {
     String geneId;
     String geneSymbol;
 
-    // incoming data from morbidmap file
-    Set<String> geneSymbols = new HashSet<String>();
-    Set<String> cytoPos = new HashSet<String>();
-    OmimRecord primaryRecord;
-
+    // incoming data from OMIM API query
+    String geneSymbols;
+    String chr;
+    int startPos;
+    int stopPos;
+    Set<Integer> phenotypeMimNumbers = new HashSet<>();
 
     // matching genes in rgd
     private Set<Gene> rgdGenes = new HashSet<>();
@@ -37,9 +37,6 @@ public class OmimRecord extends PipelineRecord {
 
     // to be updated omim ids
     List<Integer> omimsForUpdate = new ArrayList<Integer>();
-
-    // to be removed omim ids
-    List<XdbId> omimsForDelete = new ArrayList<XdbId>();
 
     public String getMimNumber() {
         return mimId;
@@ -91,13 +88,5 @@ public class OmimRecord extends PipelineRecord {
 
     public void setOmimsForUpdate(List<Integer> omimsForUpdate) {
         this.omimsForUpdate = omimsForUpdate;
-    }
-
-    public List<XdbId> getOmimsForDelete() {
-        return omimsForDelete;
-    }
-
-    public void setOmimsForDelete(List<XdbId> omimsForDelete) {
-        this.omimsForDelete = omimsForDelete;
     }
 }

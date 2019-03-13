@@ -6,7 +6,6 @@ import edu.mcw.rgd.pipelines.RecordProcessor;
 /**
  * @author mtutaj
  * Date: Apr 28, 2011
- * Time: 5:39:31 PM
  */
 public class LoadProcessor extends RecordProcessor {
 
@@ -37,11 +36,6 @@ public class LoadProcessor extends RecordProcessor {
         if( rec.isFlagSet("OMIM_MATCHING") ) {
             dao.updateOmims(rec.getOmimsForUpdate());
             getSession().incrementCounter("OMIM_MATCHING", rec.getOmimsForUpdate().size());
-        }
-
-        if( rec.isFlagSet("OMIM_DELETED") ) {
-            dao.deleteOmims(rec.getOmimsForDelete());
-            getSession().incrementCounter("OMIM_DELETED", rec.getOmimsForDelete().size());
         }
     }
 

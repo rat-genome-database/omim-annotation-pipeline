@@ -1,14 +1,15 @@
 package edu.mcw.rgd.dataload.omim;
 
+import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.pipelines.PipelineRecord;
 import edu.mcw.rgd.pipelines.RecordProcessor;
+import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author mtutaj
@@ -18,6 +19,8 @@ public class QCProcessor extends RecordProcessor {
 
     protected final Logger logMultis = LogManager.getLogger("multis");
 
+    int humanMapKey = 38; // human assembly GRCh38
+
     private OmimDAO dao;
 
     @Override
@@ -25,49 +28,61 @@ public class QCProcessor extends RecordProcessor {
 
         OmimRecord rec = (OmimRecord) pipelineRecord;
 
-        // if the record does not contain gene symbol nor entrez gene id, skip it
-        if( rec.getGeneId()==null || rec.getGeneSymbol()==null ||
-            (rec.getGeneId().equals("-") && rec.getGeneSymbol().equals("-")) ) {
-
-            if( rec.primaryRecord!=null )
-                processAlternateGeneSymbols(rec);
-
-            if( rec.getRgdGenes().isEmpty() ) {
-                rec.setFlag("NO_DATA");
-
-                // no data for this record
-                // it is possible this omim has been retired or withdrawn;
-                // in that case it has to be removed from db
-                List<XdbId> omimIdsInRgd = dao.getXdbIdsForOmimId(rec.getMimNumber());
-
-                // if there are no objects with such a omim id, nothing more to do
-                if( omimIdsInRgd.isEmpty() )
-                    return;
-
-                // surprise! there are existing rgd objects with such an omim id: delete them
-                rec.setOmimsForDelete(omimIdsInRgd);
-                rec.setFlag("OMIM_DELETED");// flag the record: there are omims to be deleted
-                return;
-            }
-        }
-
-        // match to rgd gene by NCBI gene id
-        if( !rec.getGeneId().equals("-") ) {
+        // first match to rgd gene by NCBI gene id
+        if( !Utils.isStringEmpty(rec.getGeneId()) ) {
             rec.getRgdGenes().addAll(dao.getGenesByNcbiGeneID(rec.getGeneId()));
         }
 
-        // match to rgd gene by gene symbol
-        if( !rec.getGeneSymbol().equals("-") ) {
+        // second match by gene symbol
+        if( rec.getRgdGenes().isEmpty() && !Utils.isStringEmpty(rec.getGeneSymbol()) ) {
             rec.getRgdGenes().addAll(dao.getGenesBySymbol(rec.getGeneSymbol()));
         }
+
+        // validate gene locus and gene symbol list if available
+        processGeneLocus(rec);
+        processAlternateGeneSymbols(rec);
 
         qcRgdGenes(rec);
     }
 
+    void processGeneLocus(OmimRecord rec) throws Exception {
+
+        if( rec.chr!=null && rec.startPos>0 && rec.stopPos>rec.startPos ) {
+            GeneDAO gdao = new GeneDAO();
+            List<Gene> genesInLocus = gdao.getGenesByPosition(rec.chr, rec.startPos, rec.stopPos, humanMapKey);
+
+            // if there no RGD genes, use the ones from gene position
+            if( rec.getRgdGenes().isEmpty() ) {
+                rec.getRgdGenes().addAll(genesInLocus);
+            } else {
+                // there were some genes already -- intersect them with genes-by-position
+                rec.getRgdGenes().retainAll(genesInLocus);
+            }
+        }
+    }
+
     void processAlternateGeneSymbols(OmimRecord rec) throws Exception {
 
-        for( String symbol: rec.geneSymbols ) {
-            rec.getRgdGenes().addAll(dao.getGenesBySymbol(symbol));
+        if( Utils.isStringEmpty(rec.geneSymbols) ) {
+            return;
+        }
+
+        Set<Gene> genesBySymbol = new HashSet<>();
+
+        String[] geneSymbols = rec.geneSymbols.split("[\\,\\s]+");
+        for( String geneSymbol: geneSymbols ) {
+            List<Gene> genes = getDao().getGenesBySymbol(geneSymbol);
+            if( genes.isEmpty() ) {
+                genes = getDao().getGenesByAlias(geneSymbol);
+            }
+            genesBySymbol.addAll(genes);
+        }
+
+        if( rec.getRgdGenes().isEmpty() ) {
+            rec.getRgdGenes().addAll(genesBySymbol);
+        } else {
+            // intersect genes-by-symbol with the existing list of genes
+            rec.getRgdGenes().retainAll(genesBySymbol);
         }
     }
 
@@ -89,33 +104,44 @@ public class QCProcessor extends RecordProcessor {
                 msg += "RGD_ID:"+gene.getRgdId()+"|SYMBOL:"+gene.getSymbol()+"\n";
             }
             logMultis.info(msg);
-        } else {
-            rec.setFlag("GENE_MATCH");
+            return;
         }
+
+        // single gene match
+        rec.setFlag("GENE_MATCH");
 
         // get omim ids for matching gene
         for( Gene gene: rec.getRgdGenes() ) {
 
-            // create a new omim for insertion
-            XdbId xdbId = new XdbId();
-            xdbId.setAccId(rec.getMimNumber());
-            xdbId.setLinkText(rec.getMimNumber());
-            xdbId.setRgdId(gene.getRgdId());
-            xdbId.setSrcPipeline("OMIM");
-            xdbId.setXdbKey(XdbId.XDB_KEY_OMIM);
-            xdbId.setModificationDate(new Date());
+            qcOmimId(gene.getRgdId(), rec.getMimNumber(), rec);
 
-            List<XdbId> omimIdsInRgd = dao.getOmimIdsForGene(gene.getRgdId());
+            for( Integer phenotypeOmimId: rec.phenotypeMimNumbers ) {
+                qcOmimId(gene.getRgdId(), phenotypeOmimId.toString(), rec);
+            }
+        }
+    }
 
-            // if the incoming omim id is not in RGD yet, it has to be added
-            if( omimIdsInRgd.contains(xdbId) ) {
-                rec.setFlag("OMIM_MATCHING");
-                rec.getOmimsForUpdate().add(xdbId.getKey());
-            }
-            else {
-                rec.getOmimsForInsert().add(xdbId);
-                rec.setFlag("OMIM_INSERTED");
-            }
+    void qcOmimId(int rgdId, String omimId, OmimRecord rec) throws Exception {
+        // create a new omim for insertion
+        XdbId xdbId = new XdbId();
+        xdbId.setAccId(omimId);
+        xdbId.setRgdId(rgdId);
+        xdbId.setSrcPipeline("OMIM");
+        xdbId.setXdbKey(XdbId.XDB_KEY_OMIM);
+        xdbId.setModificationDate(new Date());
+
+        List<XdbId> omimIdsInRgd = dao.getOmimIdsForGene(rgdId);
+
+        // if the incoming omim id is not in RGD yet, it has to be added
+        int matchIndex = omimIdsInRgd.indexOf(xdbId);
+        if( matchIndex>=0 ) {
+            rec.setFlag("OMIM_MATCHING");
+            XdbId id = omimIdsInRgd.get(matchIndex);
+            rec.getOmimsForUpdate().add(id.getKey());
+        }
+        else {
+            rec.getOmimsForInsert().add(xdbId);
+            rec.setFlag("OMIM_INSERTED");
         }
     }
 

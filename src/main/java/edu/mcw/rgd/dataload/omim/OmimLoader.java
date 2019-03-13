@@ -1,7 +1,12 @@
 package edu.mcw.rgd.dataload.omim;
 
+import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.pipelines.PipelineManager;
+import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.Logger;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by mtutaj on 6/2/2017.
@@ -14,18 +19,31 @@ public class OmimLoader {
 
     void run(Logger log, int qcThreadCount) throws Exception {
 
+        Date yesterday = Utils.addDaysToDate(new Date(), -1);
+
         OmimDAO dao = new OmimDAO();
         qcProcessor.setDao(dao);
         loadProcessor.setDao(dao);
         log.info("   "+dao.getConnectionInfo());
 
+        OmimPS omimPSMap = new OmimPS();
+        preProcessor.setOmimPSMap(omimPSMap);
+
         log.info(getVersion());
 
         PipelineManager manager = new PipelineManager();
-        manager.addPipelineWorkgroup(preProcessor, "PP", 1, 1000);
-        manager.addPipelineWorkgroup(qcProcessor, "QC", qcThreadCount, 1000);
-        manager.addPipelineWorkgroup(loadProcessor, "DL", 1, 1000);
+        manager.addPipelineWorkgroup(preProcessor, "PP", 1, 10000);
+        manager.addPipelineWorkgroup(qcProcessor, "QC", qcThreadCount, 10000);
+        manager.addPipelineWorkgroup(loadProcessor, "DL", 1, 10000);
         manager.run();
+
+        // QC OMIM PS map
+        omimPSMap.qc(dao, manager.getSession());
+
+        // delete stale annotations
+        List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(yesterday);
+        dao.deleteOmims(staleOmimIds);
+        manager.getSession().incrementCounter("OMIM_DELETED", staleOmimIds.size());
 
         // dump counter statistics
         manager.dumpCounters(log);

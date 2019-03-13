@@ -1,11 +1,11 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline v.1.4.7, Jan 21, 2019"/>
+        <property name="version" value="OmimPipeline v.1.4.8, Mar 13, 2019"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
-        <property name="version" value="OmimIdPipeline v.1.4.1, Oct 2, 2017"/>
+        <property name="version" value="OmimIdPipeline v.2.0.0, Mar 13, 2019"/>
         <property name="preProcessor" ref="preProcessor"/>
         <property name="qcProcessor" ref="qcProcessor"/>
         <property name="loadProcessor" ref="loadProcessor"/>
@@ -14,10 +14,7 @@
     <!-- in Feb 2016, reregistration was needed, and download links changed -->
 	<bean id="preProcessor" class="edu.mcw.rgd.dataload.omim.PreProcessor">
         <property name="mim2geneFile" value="http://omim.org/static/omim/data/mim2gene.txt"/>
-        <property name="morbidmapFile" value="http://data.omim.org/downloads/3XqIoOKuTw6AchXT56nFYQ/morbidmap.txt"/>
-        <property name="genemapFile" value="http://data.omim.org/downloads/3XqIoOKuTw6AchXT56nFYQ/genemap.txt"/>
-        <property name="genemapKeyFile" value="http://data.omim.org/downloads/3XqIoOKuTw6AchXT56nFYQ/genemap2.txt"/>
-        <property name="omimTxtFile" value="http://data.omim.org/downloads/3XqIoOKuTw6AchXT56nFYQ/mimTitles.txt"/>
+        <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey=3XqIoOKuTw6AchXT56nFYQ&amp;format=json&amp;mimNumber="/>
 	</bean>
 
     <bean id="qcProcessor" class="edu.mcw.rgd.dataload.omim.QCProcessor">

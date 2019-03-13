@@ -1,3 +1,11 @@
+TODO: inserted annots should go to inserted.log
+      deleted annots should go to deleted.log
+      annots.log ?!?
+
+Mar 13, 2018, v. 1.4.8
+  logic rewritten to load OMIM ids via OMIM API
+  added loading of mappings for phenotypic series
+
 Jan 21, 2019, v. 1.4.7
   logging tune up
 

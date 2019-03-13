@@ -4,6 +4,7 @@ import edu.mcw.rgd.dao.impl.AnnotationDAO;
 import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.dao.impl.OntologyXDAO;
 import edu.mcw.rgd.dao.impl.XdbIdDAO;
+import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.SpeciesType;
 import edu.mcw.rgd.datamodel.XdbId;
@@ -67,6 +68,10 @@ public class OmimDAO {
         return geneDAO.getActiveGenes(SpeciesType.HUMAN, symbol);
     }
 
+    public List<Gene> getGenesByAlias(String alias) throws Exception {
+        return geneDAO.getGenesByAlias(alias, SpeciesType.HUMAN);
+    }
+
     /**
      * Returns a Gene based on an rgd id
      * @param rgdId rgd id
@@ -114,6 +119,11 @@ public class OmimDAO {
 
         // get the results
         return xdbIdDAO.getXdbIds(filter, SpeciesType.HUMAN);
+    }
+
+    public List<XdbId> getOmimIdsModifiedBefore(java.util.Date modDate) throws Exception {
+
+        return xdbIdDAO.getXdbIdsModifiedBefore(XdbId.XDB_KEY_OMIM, "OMIM", modDate);
     }
 
     /**
@@ -242,5 +252,20 @@ public class OmimDAO {
             staleAnnotKeys.add(ann.getKey());
         }
         return annotationDAO.deleteAnnotations(staleAnnotKeys);
+    }
+
+    public List<StringMapQuery.MapPair> getPhenotypicSeriesMappings() throws Exception {
+        String sql = "SELECT phenotypic_series_number,phenotype_mim_number FROM omim_phenotypic_series";
+        return StringMapQuery.execute(geneDAO, sql);
+    }
+
+    public void insertPhenotypicSeriesMapping( String psNumber, String phenotypeMimNumber ) throws Exception {
+        String sql = "INSERT INTO omim_phenotypic_series (phenotypic_series_number, phenotype_mim_number) VALUES(?,?)";
+        geneDAO.update(sql, psNumber, phenotypeMimNumber);
+    }
+
+    public void deletePhenotypicSeriesMapping( String psNumber, String phenotypeMimNumber ) throws Exception {
+        String sql = "DELETE FROM omim_phenotypic_series WHERE phenotypic_series_number=? AND phenotype_mim_number=?";
+        geneDAO.update(sql, psNumber, phenotypeMimNumber);
     }
 }
