@@ -1,6 +1,10 @@
 package edu.mcw.rgd.dataload.omim;
 
-import edu.mcw.rgd.dao.impl.*;
+import edu.mcw.rgd.dao.impl.AnnotationDAO;
+import edu.mcw.rgd.dao.impl.GeneDAO;
+import edu.mcw.rgd.dao.impl.OntologyXDAO;
+import edu.mcw.rgd.dao.impl.XdbIdDAO;
+import edu.mcw.rgd.dao.spring.StringListQuery;
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.SpeciesType;
@@ -8,7 +12,6 @@ import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
-import edu.mcw.rgd.pipelines.PipelineSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +34,6 @@ public class OmimDAO {
     AnnotationDAO annotationDAO = new AnnotationDAO();
     GeneDAO geneDAO = new GeneDAO();
     OntologyXDAO ontologyXDAO = new OntologyXDAO();
-    RGDManagementDAO rgdManagementDAO = new RGDManagementDAO();
     XdbIdDAO xdbIdDAO = new XdbIdDAO();
 
     public String getConnectionInfo() {
@@ -145,23 +147,14 @@ public class OmimDAO {
      * @return number of rows actually deleted
      * @throws Exception when unexpected error in spring framework occurs
      */
-    public int deleteOmims(List<XdbId> omims, PipelineSession session) throws Exception {
-
-        List<XdbId> omimsForDelete = new ArrayList<>(omims.size());
+    public int deleteOmims(List<XdbId> omims) throws Exception {
 
         for( XdbId xdbId: omims ) {
-            if( !rgdManagementDAO.getRgdId2(xdbId.getRgdId()).getObjectStatus().equals("ACTIVE") ) {
-                omimsForDelete.add(xdbId);
-            }
             logDeleted.info(xdbId.dump("|"));
         }
-
-        // out of precaution, delete only the entries for inactive rgd ids
-        session.incrementCounter("OMIM_DELETED_FOR_INACTIVE_RGD_IDS", omimsForDelete.size());
-        session.incrementCounter("OMIM_OBSOLETE", omims.size() - omimsForDelete.size());
-
-        return xdbIdDAO.deleteXdbIds(omimsForDelete);
+        return xdbIdDAO.deleteXdbIds(omims);
     }
+
     /**
      * for a bunch of rows identified by acc_xdb_key, set MODIFICATION_DATE to SYSDATE
      * @param accXdbKeys list of ACC_XDB_KEYs
@@ -277,4 +270,12 @@ public class OmimDAO {
         String sql = "DELETE FROM omim_phenotypic_series WHERE phenotypic_series_number=? AND phenotype_mim_number=?";
         geneDAO.update(sql, psNumber, phenotypeMimNumber);
     }
+
+    public List<String> getPhenotypicSeriesIdsNotInRgd() throws Exception {
+        String sql = "SELECT phenotypic_series_number FROM omim_phenotypic_series "+
+            "MINUS "+
+            "SELECT substr(synonym_name,6) FROM ont_synonyms WHERE term_acc like 'DOID:%' AND synonym_name like 'OMIM:PS%'";
+        return StringListQuery.execute(geneDAO, sql);
+    }
+
 }

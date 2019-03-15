@@ -2,6 +2,7 @@ package edu.mcw.rgd.dataload.omim;
 
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.pipelines.PipelineSession;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -59,6 +60,18 @@ public class OmimPS {
         for( String mapping: toBeDeletedMappings ) {
             String[] words = mapping.split("[\\|]");
             dao.deletePhenotypicSeriesMapping(words[0], words[1]);
+        }
+    }
+
+    public void dumpPSIdsNotInRgd(OmimDAO dao, Logger log) throws Exception {
+
+        List<String> psIdsNotInRgd = dao.getPhenotypicSeriesIdsNotInRgd();
+        if( !psIdsNotInRgd.isEmpty() ) {
+            log.info("===");
+            log.info("OMIM PS ids not in RGD (yet): "+psIdsNotInRgd.size());
+            for( String psIdNotInRgd: psIdsNotInRgd ) {
+                log.info("   OMIM:"+psIdNotInRgd);
+            }
         }
     }
 }

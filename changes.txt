@@ -4,6 +4,7 @@ TODO: inserted annots should go to inserted.log
 
 Mar 15, 2018, v. 1.4.9
   improved handling of obsolete OMIM IDs
+  added reporting of OMIM PS ids not in RGD
 
 Mar 13, 2018, v. 1.4.8
   logic rewritten to load OMIM ids via OMIM API
