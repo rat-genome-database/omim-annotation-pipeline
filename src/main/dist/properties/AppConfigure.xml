@@ -15,6 +15,8 @@
 	<bean id="preProcessor" class="edu.mcw.rgd.dataload.omim.PreProcessor">
         <property name="mim2geneFile" value="http://omim.org/static/omim/data/mim2gene.txt"/>
         <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey=3XqIoOKuTw6AchXT56nFYQ&amp;format=json&amp;mimNumber="/>
+        <property name="omimApiDownloadSleepTimeInMS" value="666"/>
+        <property name="jsonFileCacheLifeInDays" value="90"/>
 	</bean>
 
     <bean id="qcProcessor" class="edu.mcw.rgd.dataload.omim.QCProcessor">

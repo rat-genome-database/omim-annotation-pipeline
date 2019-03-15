@@ -151,7 +151,8 @@ public class OmimDAO {
         for( XdbId xdbId: omims ) {
             logDeleted.info(xdbId.dump("|"));
         }
-        return xdbIdDAO.deleteXdbIds(omims);    
+        //return xdbIdDAO.deleteXdbIds(omims);
+        return 0;
     }
     /**
      * for a bunch of rows identified by acc_xdb_key, set MODIFICATION_DATE to SYSDATE

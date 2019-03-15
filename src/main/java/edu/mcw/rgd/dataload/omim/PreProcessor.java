@@ -9,6 +9,9 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author mtutaj
@@ -19,6 +22,8 @@ public class PreProcessor extends RecordPreprocessor {
     private String mim2geneFile;
     private String omimApiUrl;
     private OmimPS omimPSMap;
+    private int omimApiDownloadSleepTimeInMS;
+    private int jsonFileCacheLifeInDays;
 
     @Override
     public void process() throws Exception {
@@ -30,15 +35,32 @@ public class PreProcessor extends RecordPreprocessor {
         processMim2Gene(fileName);
     }
 
-    void processMim2Gene(String fileName) throws Exception {
+    List<String> loadMim2Gene(String fileName) throws Exception {
 
         // this is a text file, tab separated
         BufferedReader reader = Utils.openReader(fileName);
+        List<String> lines = new ArrayList<>();
+
         String line;
-        while( (line=reader.readLine())!=null ) {
+        while ((line = reader.readLine()) != null) {
             // skip comment lines
-            if( line.startsWith("#") )
+            if (line.startsWith("#"))
                 continue;
+            lines.add(line);
+        }
+        reader.close();
+
+        Collections.shuffle(lines);
+
+        return lines;
+    }
+
+    void processMim2Gene(String fileName) throws Exception {
+
+        // this is a text file, tab separated
+        List<String> lines = loadMim2Gene(fileName);
+        for( String line: lines ) {
+
             // split line into words
             String[] words = line.split("[\t]", -1);
 
@@ -57,27 +79,11 @@ public class PreProcessor extends RecordPreprocessor {
 
             getSession().putRecordToFirstQueue(rec);
         }
-
-        // cleanup
-        reader.close();
     }
 
     void getGeneInfoFromOmimApi(OmimRecord rec) throws Exception {
 
-        String jsonFileName = "data/json/"+rec.getMimNumber()+".json";
-        File f = new File(jsonFileName);
-        long sleepInMilliSeconds = 0;
-        if( !f.exists() ) {
-            FileDownloader fd = new FileDownloader();
-            fd.setExternalFile(getOmimApiUrl() + rec.getMimNumber());
-            fd.setLocalFile(jsonFileName);
-            fd.download();
-            sleepInMilliSeconds = 1111;
-        }
-        String jsonContent = Utils.readFileAsString(jsonFileName);
-
-        JSONParser parser = new JSONParser();
-        JSONObject jsonTree = (JSONObject) parser.parse(jsonContent);;
+        JSONObject jsonTree = getJsonContent(rec.getMimNumber());
 
         JSONObject root = (JSONObject) jsonTree.get("omim");
         JSONArray records = (JSONArray) root.get("entryList");
@@ -99,8 +105,9 @@ public class PreProcessor extends RecordPreprocessor {
 
             rec.chr = chr;
             rec.geneSymbols = geneSymbols;
-            rec.startPos = locStart==null ? 0 : locStart.intValue();
-            rec.stopPos = locEnd==null ? 0 : locEnd.intValue();
+            // start and stop position in json data is 0-based; in RGD, we have 1-based coordinates
+            rec.startPos = locStart==null ? 0 : 1+locStart.intValue();
+            rec.stopPos = locEnd==null ? 0 : 1+locEnd.intValue();
 
             JSONArray phenotypeMapList = (JSONArray) geneMap.get("phenotypeMapList");
             if( phenotypeMapList==null ) {
@@ -114,12 +121,55 @@ public class PreProcessor extends RecordPreprocessor {
                     rec.phenotypeMimNumbers.add(phenotypeMimNumber.intValue());
                 }
                 if( psNumber!=null && phenotypeMimNumber!=null ) {
-                    omimPSMap.addMapping(psNumber, phenotypeMimNumber.intValue());
+                    getOmimPSMap().addMapping(psNumber, phenotypeMimNumber.intValue());
                 }
             }
         }
+    }
 
-        Thread.sleep(sleepInMilliSeconds);
+    JSONObject getJsonContent(String mimNumber) throws Exception {
+
+        String jsonFileName = "data/json/" + mimNumber + ".json";
+        File f = new File(jsonFileName);
+        if (f.exists()) {
+            // file on disk cannot be older than specified number of days
+            long fileLastModifiedTime = f.lastModified();
+
+            // file cutoff date (30 days before the current time)
+            long cutoffDate = System.currentTimeMillis() - 30*24*60*60*1000l;
+
+            if( fileLastModifiedTime<cutoffDate ) {
+                f.delete();
+            }
+        }
+
+        if (!f.exists()) {
+            FileDownloader fd = new FileDownloader();
+            fd.setExternalFile(getOmimApiUrl() + mimNumber);
+            fd.setLocalFile(jsonFileName);
+            fd.download();
+
+            Thread.sleep(getOmimApiDownloadSleepTimeInMS());
+        }
+
+        String jsonContent = Utils.readFileAsString(jsonFileName);
+
+        JSONParser parser = new JSONParser();
+        JSONObject jsonTree = null;
+        try {
+            jsonTree = (JSONObject) parser.parse(jsonContent);
+        } catch( Exception e ) {
+            System.out.println("WARN: problem parsing file for OMIM:"+mimNumber);
+
+            // delete the file and retry
+            if( f.exists() ) {
+                f.delete();
+                System.out.println("File "+jsonFileName+" deleted. Retrying...");
+                return getJsonContent(mimNumber);
+            }
+        }
+
+        return jsonTree;
     }
 
     /**
@@ -159,5 +209,21 @@ public class PreProcessor extends RecordPreprocessor {
 
     public void setOmimPSMap(OmimPS omimPSMap) {
         this.omimPSMap = omimPSMap;
+    }
+
+    public void setOmimApiDownloadSleepTimeInMS(int omimApiDownloadSleepTimeInMS) {
+        this.omimApiDownloadSleepTimeInMS = omimApiDownloadSleepTimeInMS;
+    }
+
+    public int getOmimApiDownloadSleepTimeInMS() {
+        return omimApiDownloadSleepTimeInMS;
+    }
+
+    public void setJsonFileCacheLifeInDays(int jsonFileCacheLifeInDays) {
+        this.jsonFileCacheLifeInDays = jsonFileCacheLifeInDays;
+    }
+
+    public int getJsonFileCacheLifeInDays() {
+        return jsonFileCacheLifeInDays;
     }
 }

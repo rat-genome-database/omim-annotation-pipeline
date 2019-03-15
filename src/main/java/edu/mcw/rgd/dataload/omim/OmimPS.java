@@ -17,10 +17,19 @@ public class OmimPS {
 
     private Set<String> incoming = new HashSet<>();
 
-    // return true if the mapping is new
-    public boolean addMapping( String psId, int phenotypeMimNumber ) {
-        String mapping = psId+"|"+phenotypeMimNumber;
-        return incoming.add(mapping);
+    // return nr of new mappings added
+    public int addMapping( String psIds, int phenotypeMimNumber ) {
+        int addedMappings = 0;
+
+        // split PS is into multiple types
+        for( String psId: psIds.split("[\\,]") ) {
+            String mapping = psId + "|" + phenotypeMimNumber;
+            if( incoming.add(mapping) ) {
+                addedMappings++;
+            }
+        }
+
+        return addedMappings;
     }
 
     public void qc( OmimDAO dao, PipelineSession session ) throws Exception {

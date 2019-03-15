@@ -33,14 +33,17 @@ public class QCProcessor extends RecordProcessor {
             rec.getRgdGenes().addAll(dao.getGenesByNcbiGeneID(rec.getGeneId()));
         }
 
-        // second match by gene symbol
-        if( rec.getRgdGenes().isEmpty() && !Utils.isStringEmpty(rec.getGeneSymbol()) ) {
-            rec.getRgdGenes().addAll(dao.getGenesBySymbol(rec.getGeneSymbol()));
-        }
+        // if there is a one matching gene by NCBI gene id, there is no need for secondary matching
+        if( rec.getRgdGenes().size()!=1 ) {
+            // second match by gene symbol
+            if (rec.getRgdGenes().isEmpty() && !Utils.isStringEmpty(rec.getGeneSymbol())) {
+                rec.getRgdGenes().addAll(dao.getGenesBySymbol(rec.getGeneSymbol()));
+            }
 
-        // validate gene locus and gene symbol list if available
-        processGeneLocus(rec);
-        processAlternateGeneSymbols(rec);
+            // validate gene locus and gene symbol list if available
+            processGeneLocus(rec);
+            processAlternateGeneSymbols(rec);
+        }
 
         qcRgdGenes(rec);
     }

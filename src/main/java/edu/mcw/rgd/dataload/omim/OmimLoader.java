@@ -31,10 +31,11 @@ public class OmimLoader {
 
         log.info(getVersion());
 
+        final int recPoolSize = 15000;
         PipelineManager manager = new PipelineManager();
-        manager.addPipelineWorkgroup(preProcessor, "PP", 1, 10000);
-        manager.addPipelineWorkgroup(qcProcessor, "QC", qcThreadCount, 10000);
-        manager.addPipelineWorkgroup(loadProcessor, "DL", 1, 10000);
+        manager.addPipelineWorkgroup(preProcessor, "PP", 1, recPoolSize);
+        manager.addPipelineWorkgroup(qcProcessor, "QC", qcThreadCount, recPoolSize);
+        manager.addPipelineWorkgroup(loadProcessor, "DL", 1, recPoolSize);
         manager.run();
 
         // QC OMIM PS map
