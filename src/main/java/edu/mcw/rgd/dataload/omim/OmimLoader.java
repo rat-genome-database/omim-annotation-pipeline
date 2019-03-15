@@ -43,8 +43,7 @@ public class OmimLoader {
 
         // delete stale annotations
         List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(yesterday);
-        dao.deleteOmims(staleOmimIds);
-        manager.getSession().incrementCounter("OMIM_DELETED", staleOmimIds.size());
+        dao.deleteOmims(staleOmimIds, manager.getSession());
 
         // dump counter statistics
         manager.dumpCounters(log);

@@ -1,9 +1,6 @@
 package edu.mcw.rgd.dataload.omim;
 
-import edu.mcw.rgd.dao.impl.AnnotationDAO;
-import edu.mcw.rgd.dao.impl.GeneDAO;
-import edu.mcw.rgd.dao.impl.OntologyXDAO;
-import edu.mcw.rgd.dao.impl.XdbIdDAO;
+import edu.mcw.rgd.dao.impl.*;
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.SpeciesType;
@@ -11,6 +8,7 @@ import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
+import edu.mcw.rgd.pipelines.PipelineSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,10 +28,11 @@ public class OmimDAO {
     protected final Logger logInserted = LogManager.getLogger("omim_inserted");
     protected final Logger logAnnots = LogManager.getLogger("annots");
 
-    GeneDAO geneDAO = new GeneDAO();
-    XdbIdDAO xdbIdDAO = new XdbIdDAO();
-    OntologyXDAO ontologyXDAO = new OntologyXDAO();
     AnnotationDAO annotationDAO = new AnnotationDAO();
+    GeneDAO geneDAO = new GeneDAO();
+    OntologyXDAO ontologyXDAO = new OntologyXDAO();
+    RGDManagementDAO rgdManagementDAO = new RGDManagementDAO();
+    XdbIdDAO xdbIdDAO = new XdbIdDAO();
 
     public String getConnectionInfo() {
         return geneDAO.getConnectionInfo();
@@ -146,13 +145,22 @@ public class OmimDAO {
      * @return number of rows actually deleted
      * @throws Exception when unexpected error in spring framework occurs
      */
-    public int deleteOmims(List<XdbId> omims) throws Exception {
+    public int deleteOmims(List<XdbId> omims, PipelineSession session) throws Exception {
+
+        List<XdbId> omimsForDelete = new ArrayList<>(omims.size());
 
         for( XdbId xdbId: omims ) {
+            if( !rgdManagementDAO.getRgdId2(xdbId.getRgdId()).getObjectStatus().equals("ACTIVE") ) {
+                omimsForDelete.add(xdbId);
+            }
             logDeleted.info(xdbId.dump("|"));
         }
-        //return xdbIdDAO.deleteXdbIds(omims);
-        return 0;
+
+        // out of precaution, delete only the entries for inactive rgd ids
+        session.incrementCounter("OMIM_DELETED_FOR_INACTIVE_RGD_IDS", omimsForDelete.size());
+        session.incrementCounter("OMIM_OBSOLETE", omims.size() - omimsForDelete.size());
+
+        return xdbIdDAO.deleteXdbIds(omimsForDelete);
     }
     /**
      * for a bunch of rows identified by acc_xdb_key, set MODIFICATION_DATE to SYSDATE
