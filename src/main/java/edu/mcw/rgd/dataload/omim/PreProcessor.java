@@ -174,14 +174,14 @@ public class PreProcessor extends RecordPreprocessor {
     }
 
     /**
-     * download mim2gene.txt file, save it to a local directory;
-     * then download morbidmap file
+     * download mim2gene.txt file, save it to a local directory
      * @return the name of the local copy of the file
      */
     private String downloadFile() throws Exception {
 
         FileDownloader downloader = new FileDownloader();
         downloader.setUseCompression(true);
+        downloader.setPrependDateStamp(true);
 
         downloader.setExternalFile(getMim2geneFile());
         downloader.setLocalFile("data/mim2gene.txt.gz");
