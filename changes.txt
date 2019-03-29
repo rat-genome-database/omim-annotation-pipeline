@@ -2,6 +2,10 @@ TODO: inserted annots should go to inserted.log
       deleted annots should go to deleted.log
       annots.log ?!?
 
+Mar 29, 2018, v. 1.5.0
+  loader: added loading of some OMIM data (phenotypes) into OMIM table
+  annotator: annotations to 'susceptibility' terms must have 'susceptibility' qualifier
+
 Mar 15, 2018, v. 1.4.9
   improved handling of obsolete OMIM IDs
   added reporting of OMIM PS ids not in RGD

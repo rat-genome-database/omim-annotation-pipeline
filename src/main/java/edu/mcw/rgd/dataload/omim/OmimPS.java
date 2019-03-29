@@ -19,12 +19,12 @@ public class OmimPS {
     private Set<String> incoming = new HashSet<>();
 
     // return nr of new mappings added
-    public int addMapping( String psIds, int phenotypeMimNumber ) {
+    public int addMapping( String psIds, String phenotypeMimNumber ) {
         int addedMappings = 0;
 
         // split PS is into multiple types
         for( String psId: psIds.split("[\\,]") ) {
-            String mapping = psId + "|" + phenotypeMimNumber;
+            String mapping = "OMIM:"+psId + "|" + phenotypeMimNumber;
             if( incoming.add(mapping) ) {
                 addedMappings++;
             }
@@ -70,7 +70,7 @@ public class OmimPS {
             log.info("===");
             log.info("OMIM PS ids not in RGD (yet): "+psIdsNotInRgd.size());
             for( String psIdNotInRgd: psIdsNotInRgd ) {
-                log.info("   OMIM:"+psIdNotInRgd);
+                log.info("   "+psIdNotInRgd);
             }
         }
     }

@@ -12,6 +12,7 @@ import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
+import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -274,8 +275,32 @@ public class OmimDAO {
     public List<String> getPhenotypicSeriesIdsNotInRgd() throws Exception {
         String sql = "SELECT phenotypic_series_number FROM omim_phenotypic_series "+
             "MINUS "+
-            "SELECT substr(synonym_name,6) FROM ont_synonyms WHERE term_acc like 'DOID:%' AND synonym_name like 'OMIM:PS%'";
+            "SELECT synonym_name FROM ont_synonyms WHERE term_acc like 'DOID:%' AND synonym_name like 'OMIM:PS%'";
         return StringListQuery.execute(geneDAO, sql);
     }
 
+    public void updateOmimTable( String mimNr, String phenotype ) throws Exception {
+        String sql = "SELECT mim_number,phenotype FROM omim WHERE mim_number=?";
+        List<StringMapQuery.MapPair> r = StringMapQuery.execute(geneDAO, sql, mimNr);
+        if( r.isEmpty() ) {
+            sql = "INSERT INTO omim (mim_number,phenotype) VALUES(?,?)";
+            geneDAO.update(sql, mimNr, phenotype);
+        } else {
+            // see if phenotype needs an update
+            String phenotypeInRgd = r.get(0).stringValue;
+            if( !Utils.stringsAreEqual(phenotypeInRgd, phenotype) ) {
+                sql = "UPDATE omim SET phenotype=? WHERE mim_number=?";
+                geneDAO.update(sql, phenotype, mimNr);
+            }
+        }
+    }
+
+    public String getOmimPhenotype(String mimNumber) throws Exception {
+
+        List<String> r = StringListQuery.execute(geneDAO, "SELECT phenotype FROM omim WHERE mim_number=?", mimNumber);
+        if( r.isEmpty() ) {
+            return null;
+        }
+        return r.get(0);
+    }
 }

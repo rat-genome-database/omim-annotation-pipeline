@@ -115,14 +115,15 @@ public class PreProcessor extends RecordPreprocessor {
             }
             for( Object p: phenotypeMapList ) {
                 JSONObject phenotypeMap = (JSONObject) ((JSONObject) p).get("phenotypeMap");
-                String psNumber = (String) phenotypeMap.get("phenotypicSeriesNumber");
+                String psNumbers = (String) phenotypeMap.get("phenotypicSeriesNumber");
                 Long phenotypeMimNumber = (Long) phenotypeMap.get("phenotypeMimNumber");
                 if( phenotypeMimNumber!=null ) {
                     rec.phenotypeMimNumbers.add(phenotypeMimNumber.intValue());
                 }
-                if( psNumber!=null && phenotypeMimNumber!=null ) {
-                    getOmimPSMap().addMapping(psNumber, phenotypeMimNumber.intValue());
+                if( psNumbers!=null && phenotypeMimNumber!=null ) {
+                    getOmimPSMap().addMapping(psNumbers, "OMIM:"+phenotypeMimNumber.intValue());
                 }
+                rec.phenotype = (String) phenotypeMap.get("phenotype");
             }
         }
     }

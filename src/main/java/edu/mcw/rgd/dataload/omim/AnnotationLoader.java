@@ -92,6 +92,13 @@ public class AnnotationLoader {
                 rec.annots = new ArrayList<>();
 
                 for( String omimId: rec.omimIds ) {
+
+                    String phenotype = Utils.defaultString(dao.getOmimPhenotype(omimId)).toLowerCase();
+                    String qualifier = null;
+                    if( phenotype.contains("susceptibility") ) {
+                        qualifier = "susceptibility";
+                    }
+
                     for( XdbId xdbId: dao.getXdbIdsForOmimId(omimId) ) {
 
                         Annotation ann = new Annotation();
@@ -105,6 +112,7 @@ public class AnnotationLoader {
                         ann.setTerm(rec.term.getTerm());
                         ann.setTermAcc(rec.term.getAccId());
                         ann.setRefRgdId(getRefRgdId());
+                        ann.setQualifier(qualifier);
 
                         Gene gene = dao.getGene(xdbId.getRgdId());
                         ann.setRgdObjectKey(RgdId.OBJECT_KEY_GENES);

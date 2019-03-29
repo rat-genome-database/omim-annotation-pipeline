@@ -23,13 +23,13 @@ repositories {
 }
 
 dependencies {
-    compile 'org.apache.commons:commons-dbcp2:2.5.0'
+    compile 'org.apache.commons:commons-dbcp2:2.6.0'
 	compile 'commons-net:commons-net:3.6'
 	compile 'org.apache.httpcomponents:httpclient:4.5.7'
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
-    compile 'org.apache.logging.log4j:log4j-1.2-api:2.10.0' // log4j --> log4j2 bridge for FileDownloader in rgdcore
-    compile 'org.apache.logging.log4j:log4j-api:2.10.0'
-    compile 'org.apache.logging.log4j:log4j-core:2.10.0'
+    compile 'org.apache.logging.log4j:log4j-1.2-api:2.11.0' // log4j --> log4j2 bridge for FileDownloader in rgdcore
+    compile 'org.apache.logging.log4j:log4j-api:2.11.0'
+    compile 'org.apache.logging.log4j:log4j-core:2.11.0'
     compile 'org.springframework:spring-beans:5.1.5.RELEASE'
     compile 'org.springframework:spring-jdbc:5.1.5.RELEASE'
     compile 'com.oracle:ojdbc6:11.2.0.4.0-atlassian-hosted'

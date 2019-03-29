@@ -37,6 +37,12 @@ public class LoadProcessor extends RecordProcessor {
             dao.updateOmims(rec.getOmimsForUpdate());
             getSession().incrementCounter("OMIM_MATCHING", rec.getOmimsForUpdate().size());
         }
+
+        updateOmimTable(rec);
+    }
+
+    void updateOmimTable( OmimRecord rec ) throws Exception {
+        getDao().updateOmimTable(rec.getMimNumber(), rec.getPhenotype());
     }
 
     public OmimDAO getDao() {

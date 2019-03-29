@@ -19,6 +19,7 @@ public class OmimRecord extends PipelineRecord {
     // incoming data from mim2gene file
     String mimId;
     String type;
+    String phenotype;
     String geneId;
     String geneSymbol;
 
@@ -52,6 +53,14 @@ public class OmimRecord extends PipelineRecord {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getPhenotype() {
+        return phenotype;
+    }
+
+    public void setPhenotype(String phenotype) {
+        this.phenotype = phenotype;
     }
 
     public String getGeneId() {
