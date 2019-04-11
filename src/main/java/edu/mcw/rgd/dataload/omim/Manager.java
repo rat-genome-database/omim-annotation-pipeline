@@ -50,7 +50,7 @@ public class Manager {
         try {
             if (runAnnotationPipeline) {
                 AnnotationLoader loader = (AnnotationLoader) (bf.getBean("annotationLoader"));
-                loader.run(logStatus, qcThreadCount);
+                loader.run(logStatus);
             } else {
                 OmimLoader loader = (OmimLoader) (bf.getBean("omimLoader"));
                 loader.run(logStatus, qcThreadCount);
@@ -62,6 +62,8 @@ public class Manager {
             String err = bs.toString();
             logStatus.error(err);
             System.err.println(err);
+
+            System.exit(-5);
         }
 
         logStatus.info("=== OK === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis())+"\n");

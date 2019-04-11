@@ -2,6 +2,9 @@ TODO: inserted annots should go to inserted.log
       deleted annots should go to deleted.log
       annots.log ?!?
 
+Apr 11, 2018, v. 1.5.1
+  annotator: rewritten to use java8 parallel streams
+
 Mar 29, 2018, v. 1.5.0
   loader: added loading of some OMIM data (phenotypes) into OMIM table
   annotator: annotations to 'susceptibility' terms must have 'susceptibility' qualifier

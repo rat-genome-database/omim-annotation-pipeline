@@ -6,10 +6,7 @@ import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
-import edu.mcw.rgd.pipelines.PipelineManager;
-import edu.mcw.rgd.pipelines.PipelineRecord;
-import edu.mcw.rgd.pipelines.RecordPreprocessor;
-import edu.mcw.rgd.pipelines.RecordProcessor;
+import edu.mcw.rgd.process.CounterPool;
 import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.Logger;
 
@@ -27,200 +24,188 @@ public class AnnotationLoader {
     private int refRgdId;
     private String deleteThresholdForStaleAnnotations;
     private String dataSource;
+    private Logger log;
+    private CounterPool counters;
 
-    public void run(Logger log, int qcThreadCount) throws Exception {
+
+    public void run(Logger log) throws Exception {
+
+        Date dtStart = Utils.addDaysToDate(new Date(), -1);
+
+        this.log = log;
+        counters = new CounterPool();
 
         log.info("   "+dao.getConnectionInfo());
         log.info(getVersion()+"\n");
 
-        Date dtStart = new Date();
+        // load all active disease terms
+        List<Term> terms = dao.getActiveRDOTerms();
+        List<OmimAnnotRecord> records = new ArrayList<>(terms.size());
 
-        PipelineManager manager = new PipelineManager();
+        for(Term term: terms) {
 
-        manager.addPipelineWorkgroup(new RecordPreprocessor() {
-            @Override
-            public void process() throws Exception {
+            OmimAnnotRecord rec = new OmimAnnotRecord();
+            rec.term = term;
 
-                // process all active RDO terms
-                int recno = 0;
-                List<Term> terms = dao.getActiveRDOTerms();
-                Collections.shuffle(terms);
-                for(Term term: terms) {
+            records.add(rec);
+        }
 
-                    OmimAnnotRecord rec= new OmimAnnotRecord();
-                    rec.setRecNo(++recno);
-                    rec.term = term;
-
-                    getSession().putRecordToFirstQueue(rec);
-                }
-            }
-        }, "PP", 1, 0);
-
-
-        manager.addPipelineWorkgroup(new RecordProcessor() {
-            @Override
-            public void process(PipelineRecord pipelineRecord) throws Exception {
-
-                OmimAnnotRecord rec = (OmimAnnotRecord) pipelineRecord;
-
+        // QC terms in parallel
+        records.parallelStream().forEach( rec -> {
+            try {
                 findOmimIds(rec);
                 createAnnotations(rec);
                 qcAnnotations(rec);
+                syncWithDb(rec);
+            } catch(Exception e) {
+                throw new RuntimeException(e);
             }
+        });
 
-            void findOmimIds(OmimAnnotRecord rec) throws Exception {
-                for(TermSynonym syn: dao.getTermSynonyms(rec.term.getAccId()) ) {
-                    // skip phenotypic series: OMIM:PSxxxxx
-                    if( syn.getName().startsWith("OMIM:") && !syn.getName().startsWith("OMIM:PS")) {
-                        // skip any zeroes
-                        try {
-                            int omimId = Integer.parseInt(syn.getName().substring(5).trim());
-                            if( rec.omimIds==null ) {
-                                rec.omimIds = new HashSet<>();
-                            }
-                            rec.omimIds.add(Integer.toString(omimId));
-                        } catch(NumberFormatException e) {
-                            log.warn("*** WARN: INVALID OMIM ID: "+syn.getName()+" for "+rec.term.getAccId());
-                        }
-                    }
-                }
-            }
-
-            void createAnnotations(OmimAnnotRecord rec) throws Exception {
-                if( rec.omimIds ==null )
-                    return;
-                rec.annots = new ArrayList<>();
-
-                for( String omimId: rec.omimIds ) {
-
-                    String phenotype = Utils.defaultString(dao.getOmimPhenotype(omimId)).toLowerCase();
-                    String qualifier = null;
-                    if( phenotype.contains("susceptibility") ) {
-                        qualifier = "susceptibility";
-                    }
-
-                    for( XdbId xdbId: dao.getXdbIdsForOmimId(omimId) ) {
-
-                        Annotation ann = new Annotation();
-                        ann.setAnnotatedObjectRgdId(xdbId.getRgdId());
-                        ann.setAspect("D");
-                        ann.setCreatedBy(getCreatedBy());
-                        ann.setDataSrc(getDataSource());
-                        ann.setEvidence("IAGP");
-                        ann.setLastModifiedBy(getCreatedBy());
-                        ann.setLastModifiedDate(ann.getCreatedDate());
-                        ann.setTerm(rec.term.getTerm());
-                        ann.setTermAcc(rec.term.getAccId());
-                        ann.setRefRgdId(getRefRgdId());
-                        ann.setQualifier(qualifier);
-
-                        Gene gene = dao.getGene(xdbId.getRgdId());
-                        ann.setRgdObjectKey(RgdId.OBJECT_KEY_GENES);
-                        ann.setObjectName(gene.getName());
-                        ann.setObjectSymbol(gene.getSymbol());
-                        insertAnnotation(ann, rec.annots);
-
-                        // create orthologous annotations
-                        for( Gene ortholog: dao.getActiveOrthologs(xdbId.getRgdId()) ) {
-
-                            Annotation annOrtho = (Annotation) ann.clone();
-                            annOrtho.setAnnotatedObjectRgdId(ortholog.getRgdId());
-                            annOrtho.setEvidence("ISO");
-                            annOrtho.setWithInfo("RGD:"+xdbId.getRgdId());
-                            annOrtho.setObjectName(ortholog.getName());
-                            annOrtho.setObjectSymbol(ortholog.getSymbol());
-                            insertAnnotation(annOrtho, rec.annots);
-                        }
-                    }
-                }
-            }
-
-            void insertAnnotation( Annotation ann, List<Annotation> annots ) {
-
-                // ensure the annotation to be inserted is not a duplicate annotation
-                // (duplicate annotations will have the same unique key:
-                // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE
-                if( !isAnnotationDuplicate(ann, annots) ) {
-                    annots.add(ann);
-                }
-            }
-
-            // unique annotations will have different unique keys:
-            // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE
-            boolean isAnnotationDuplicate( Annotation ann, List<Annotation> annots ) {
-
-                for( Annotation ann2: annots ) {
-                    if( !Utils.intsAreEqual(ann.getAnnotatedObjectRgdId(), ann2.getAnnotatedObjectRgdId()) )
-                        continue;
-                    if( !Utils.intsAreEqual(ann.getRefRgdId(), ann2.getRefRgdId()) )
-                        continue;
-                    if( !Utils.stringsAreEqual(ann.getTermAcc(), ann2.getTermAcc()) )
-                        continue;
-                    if( !Utils.stringsAreEqual(ann.getEvidence(), ann2.getEvidence()) )
-                        continue;
-                    if( !Utils.stringsAreEqual(ann.getWithInfo(), ann2.getWithInfo()) )
-                        continue;
-                    if( !Utils.stringsAreEqual(ann.getQualifier(), ann2.getQualifier()) )
-                        continue;
-                    if( !Utils.stringsAreEqual(ann.getXrefSource(), ann2.getXrefSource()) )
-                        continue;
-
-                    // all seven conditions are satisfied -- new annotation is a duplicate
-                    return true;
-                }
-
-                // no annotations was found to be duplicate
-                return false;
-            }
-
-            void qcAnnotations(OmimAnnotRecord rec) throws Exception {
-                if( rec.annots==null )
-                    return;
-                rec.annotsForInsert = new ArrayList<Annotation>();
-                rec.annotsForUpdate = new ArrayList<Annotation>();
-
-                for( Annotation ann: rec.annots ) {
-                    Annotation annotInRgd = dao.getAnnotation(ann);
-                    if( annotInRgd==null )
-                        rec.annotsForInsert.add(ann);
-                    else
-                        rec.annotsForUpdate.add(annotInRgd);
-                }
-            }
-
-        }, "QC", qcThreadCount, 0);
-
-        manager.addPipelineWorkgroup(new RecordProcessor() {
-            @Override
-            public void process(PipelineRecord pipelineRecord) throws Exception {
-
-                OmimAnnotRecord rec = (OmimAnnotRecord) pipelineRecord;
-
-                if( rec.annotsForInsert!=null ) {
-                    for( Annotation ann: rec.annotsForInsert ) {
-                        dao.insertAnnotation(ann);
-                        getSession().incrementCounter("ANNOTATIONS_INSERTED", 1);
-                    }
-                }
-
-                if( rec.annotsForUpdate!=null ) {
-                    for( Annotation ann: rec.annotsForUpdate ) {
-                        dao.updateLastModified(ann);
-                        getSession().incrementCounter("ANNOTATIONS_MATCHING", 1);
-                    }
-                }
-            }
-        }, "DL", 1, 0);
-
-        manager.run();
 
         // at the end delete all obsolete annotations (annotations older than one day)
         int obsoleteAnnotationsDeleted = dao.deleteObsoleteAnnotations(getCreatedBy(), dtStart,
                 getDeleteThresholdForStaleAnnotations(), getRefRgdId(), getDataSource());
-        manager.getSession().incrementCounter("ANNOTATIONS_DELETED", obsoleteAnnotationsDeleted);
+        counters.add("ANNOTATIONS_DELETED", obsoleteAnnotationsDeleted);
 
-        // dump counter statistics
-        manager.dumpCounters(log);
+        log.info(counters.dumpAlphabetically());
+    }
+
+    void findOmimIds(OmimAnnotRecord rec) throws Exception {
+        for(TermSynonym syn: dao.getTermSynonyms(rec.term.getAccId()) ) {
+            // skip phenotypic series: OMIM:PSxxxxx
+            if( syn.getName().startsWith("OMIM:") && !syn.getName().startsWith("OMIM:PS")) {
+                // skip any zeroes
+                try {
+                    int omimId = Integer.parseInt(syn.getName().substring(5).trim());
+                    if( rec.omimIds==null ) {
+                        rec.omimIds = new HashSet<>();
+                    }
+                    rec.omimIds.add(Integer.toString(omimId));
+                } catch(NumberFormatException e) {
+                    log.warn("*** WARN: INVALID OMIM ID: "+syn.getName()+" for "+rec.term.getAccId());
+                }
+            }
+        }
+    }
+
+    void createAnnotations(OmimAnnotRecord rec) throws Exception {
+        if( rec.omimIds ==null )
+            return;
+        rec.annots = new ArrayList<>();
+
+        for( String omimId: rec.omimIds ) {
+
+            String phenotype = Utils.defaultString(dao.getOmimPhenotype(omimId)).toLowerCase();
+            String qualifier = null;
+            if( phenotype.contains("susceptibility") ) {
+                qualifier = "susceptibility";
+            }
+
+            for( XdbId xdbId: dao.getXdbIdsForOmimId(omimId) ) {
+
+                Annotation ann = new Annotation();
+                ann.setAnnotatedObjectRgdId(xdbId.getRgdId());
+                ann.setAspect("D");
+                ann.setCreatedBy(getCreatedBy());
+                ann.setDataSrc(getDataSource());
+                ann.setEvidence("IAGP");
+                ann.setLastModifiedBy(getCreatedBy());
+                ann.setLastModifiedDate(ann.getCreatedDate());
+                ann.setTerm(rec.term.getTerm());
+                ann.setTermAcc(rec.term.getAccId());
+                ann.setRefRgdId(getRefRgdId());
+                ann.setQualifier(qualifier);
+
+                Gene gene = dao.getGene(xdbId.getRgdId());
+                ann.setRgdObjectKey(RgdId.OBJECT_KEY_GENES);
+                ann.setObjectName(gene.getName());
+                ann.setObjectSymbol(gene.getSymbol());
+                insertAnnotation(ann, rec.annots);
+
+                // create orthologous annotations
+                for( Gene ortholog: dao.getActiveOrthologs(xdbId.getRgdId()) ) {
+
+                    Annotation annOrtho = (Annotation) ann.clone();
+                    annOrtho.setAnnotatedObjectRgdId(ortholog.getRgdId());
+                    annOrtho.setEvidence("ISO");
+                    annOrtho.setWithInfo("RGD:"+xdbId.getRgdId());
+                    annOrtho.setObjectName(ortholog.getName());
+                    annOrtho.setObjectSymbol(ortholog.getSymbol());
+                    insertAnnotation(annOrtho, rec.annots);
+                }
+            }
+        }
+    }
+
+    void insertAnnotation( Annotation ann, List<Annotation> annots ) {
+
+        // ensure the annotation to be inserted is not a duplicate annotation
+        // (duplicate annotations will have the same unique key:
+        // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE
+        if( !isAnnotationDuplicate(ann, annots) ) {
+            annots.add(ann);
+        }
+    }
+
+    // unique annotations will have different unique keys:
+    // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE
+    boolean isAnnotationDuplicate( Annotation ann, List<Annotation> annots ) {
+
+        for( Annotation ann2: annots ) {
+            if( !Utils.intsAreEqual(ann.getAnnotatedObjectRgdId(), ann2.getAnnotatedObjectRgdId()) )
+                continue;
+            if( !Utils.intsAreEqual(ann.getRefRgdId(), ann2.getRefRgdId()) )
+                continue;
+            if( !Utils.stringsAreEqual(ann.getTermAcc(), ann2.getTermAcc()) )
+                continue;
+            if( !Utils.stringsAreEqual(ann.getEvidence(), ann2.getEvidence()) )
+                continue;
+            if( !Utils.stringsAreEqual(ann.getWithInfo(), ann2.getWithInfo()) )
+                continue;
+            if( !Utils.stringsAreEqual(ann.getQualifier(), ann2.getQualifier()) )
+                continue;
+            if( !Utils.stringsAreEqual(ann.getXrefSource(), ann2.getXrefSource()) )
+                continue;
+
+            // all seven conditions are satisfied -- new annotation is a duplicate
+            return true;
+        }
+
+        // no annotations was found to be duplicate
+        return false;
+    }
+
+    void qcAnnotations(OmimAnnotRecord rec) throws Exception {
+        if( rec.annots==null )
+            return;
+        rec.annotsForInsert = new ArrayList<>();
+        rec.annotsForUpdate = new ArrayList<>();
+
+        for( Annotation ann: rec.annots ) {
+            Annotation annotInRgd = dao.getAnnotation(ann);
+            if( annotInRgd==null )
+                rec.annotsForInsert.add(ann);
+            else
+                rec.annotsForUpdate.add(annotInRgd);
+        }
+    }
+
+    void syncWithDb( OmimAnnotRecord rec ) throws Exception {
+
+        if( rec.annotsForInsert!=null ) {
+            for( Annotation ann: rec.annotsForInsert ) {
+                dao.insertAnnotation(ann);
+                counters.increment("ANNOTATIONS_INSERTED");
+            }
+        }
+
+        if( rec.annotsForUpdate!=null ) {
+            for( Annotation ann: rec.annotsForUpdate ) {
+                dao.updateLastModified(ann);
+                counters.increment("ANNOTATIONS_MATCHING");
+            }
+        }
     }
 
     public void setVersion(String version) {
@@ -263,7 +248,7 @@ public class AnnotationLoader {
         return dataSource;
     }
 
-    class OmimAnnotRecord extends PipelineRecord {
+    class OmimAnnotRecord {
 
         Term term;
         Set<String> omimIds; // OMIM ids associated with the term

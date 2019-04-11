@@ -241,8 +241,10 @@ public class OmimDAO {
         List<Annotation> staleAnnots = annotationDAO.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "D");
 
         logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
-        logStatus.info("   stale annotation delete limit ("+staleAnnotDeleteThresholdStr+"): "+staleAnnotDeleteLimit);
-        logStatus.info("   stale annotations to be deleted: "+staleAnnots.size());
+        if( staleAnnots.size()> 0 ) {
+            logStatus.info("   stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
+            logStatus.info("   stale annotations to be deleted: " + staleAnnots.size());
+        }
 
         if( staleAnnots.size()> staleAnnotDeleteLimit ) {
             logStatus.warn("*** DELETE of stale annots aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!");
