@@ -1,11 +1,11 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline v.1.5.1, Apr 11, 2019"/>
+        <property name="version" value="OmimPipeline v.1.5.2, Apr 22, 2019"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
-        <property name="version" value="OmimIdPipeline v.2.0.2, Mar 29, 2019"/>
+        <property name="version" value="OmimIdPipeline v.2.0.3, Apr 22, 2019"/>
         <property name="preProcessor" ref="preProcessor"/>
         <property name="qcProcessor" ref="qcProcessor"/>
         <property name="loadProcessor" ref="loadProcessor"/>
@@ -16,7 +16,7 @@
         <property name="mim2geneFile" value="http://omim.org/static/omim/data/mim2gene.txt"/>
         <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey=3XqIoOKuTw6AchXT56nFYQ&amp;format=json&amp;mimNumber="/>
         <property name="omimApiDownloadSleepTimeInMS" value="666"/>
-        <property name="jsonFileCacheLifeInDays" value="30"/>
+        <property name="jsonFileCacheLifeInDays" value="25"/>
 	</bean>
 
     <bean id="qcProcessor" class="edu.mcw.rgd.dataload.omim.QCProcessor">

@@ -3,6 +3,7 @@ package edu.mcw.rgd.dataload.omim;
 import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.XdbId;
+import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.pipelines.PipelineRecord;
 import edu.mcw.rgd.pipelines.RecordProcessor;
 import edu.mcw.rgd.process.Utils;
@@ -18,6 +19,7 @@ import java.util.*;
 public class QCProcessor extends RecordProcessor {
 
     protected final Logger logMultis = LogManager.getLogger("multis");
+    protected final Logger logInactive = LogManager.getLogger("omim_inactive");
 
     int humanMapKey = 38; // human assembly GRCh38
 
@@ -27,6 +29,8 @@ public class QCProcessor extends RecordProcessor {
     public void process(PipelineRecord pipelineRecord) throws Exception {
 
         OmimRecord rec = (OmimRecord) pipelineRecord;
+
+        qcStatus(rec);
 
         // first match to rgd gene by NCBI gene id
         if( !Utils.isStringEmpty(rec.getGeneId()) ) {
@@ -46,6 +50,22 @@ public class QCProcessor extends RecordProcessor {
         }
 
         qcRgdGenes(rec);
+    }
+
+    void qcStatus(OmimRecord rec) throws Exception {
+
+        getSession().incrementCounter("OMIM_STATUS_"+rec.getStatus().toUpperCase(), 1);
+
+        if( !rec.getStatus().equals("live") ) {
+            // OMIM id is inactive -- see if there are any OMIM ids in RGD
+            List<Term> terms = dao.getRdoTermsBySynonym(rec.getMimNumber());
+            if( !terms.isEmpty() ) {
+                getSession().incrementCounter("INACTIVE_OMIM_IDS_IN_RGD", 1);
+                for( Term term: terms ) {
+                    logInactive.info(rec.getMimNumber()+" in term "+term.getAccId()+" ["+term.getTerm()+"]");
+                }
+            }
+        }
     }
 
     void processGeneLocus(OmimRecord rec) throws Exception {

@@ -24,6 +24,7 @@ public class OmimRecord extends PipelineRecord {
     String geneSymbol;
 
     // incoming data from OMIM API query
+    String status; // 'live', etc
     String geneSymbols;
     String chr;
     int startPos;
@@ -97,5 +98,13 @@ public class OmimRecord extends PipelineRecord {
 
     public void setOmimsForUpdate(List<Integer> omimsForUpdate) {
         this.omimsForUpdate = omimsForUpdate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -93,6 +93,8 @@ public class PreProcessor extends RecordPreprocessor {
         for (Object o : records) {
             JSONObject entry = (JSONObject) ((JSONObject) o).get("entry");
 
+            rec.status = (String) entry.get("status");
+
             JSONObject geneMap = (JSONObject) entry.get("geneMap");
             if( geneMap==null ) {
                 continue;
@@ -137,7 +139,7 @@ public class PreProcessor extends RecordPreprocessor {
             long fileLastModifiedTime = f.lastModified();
 
             // file cutoff date (30 days before the current time)
-            long cutoffDate = System.currentTimeMillis() - 30*24*60*60*1000l;
+            long cutoffDate = System.currentTimeMillis() - getJsonFileCacheLifeInDays()*24*60*60*1000l;
 
             if( fileLastModifiedTime<cutoffDate ) {
                 f.delete();

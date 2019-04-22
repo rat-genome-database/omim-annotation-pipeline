@@ -187,6 +187,10 @@ public class OmimDAO {
         return ontologyXDAO.getTermSynonyms(termAcc);
     }
 
+    public List<Term> getRdoTermsBySynonym(String synonymName) throws Exception {
+        return ontologyXDAO.getTermsBySynonym("RDO", synonymName, "exact");
+    }
+
     /**
      * get annotation by a list of values that comprise unique key:
      * TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE

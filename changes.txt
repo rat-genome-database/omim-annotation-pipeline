@@ -2,6 +2,10 @@ TODO: inserted annots should go to inserted.log
       deleted annots should go to deleted.log
       annots.log ?!?
 
+Apr 22, 2018, v. 1.5.2
+  loader: report obsolete OMIM ids still in RGD db
+  added logging for phenotypic series inserts/deletions
+
 Apr 11, 2018, v. 1.5.1
   annotator: rewritten to use java8 parallel streams
 
