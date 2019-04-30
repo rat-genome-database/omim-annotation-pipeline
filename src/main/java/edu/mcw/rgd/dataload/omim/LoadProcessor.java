@@ -42,7 +42,7 @@ public class LoadProcessor extends RecordProcessor {
     }
 
     void updateOmimTable( OmimRecord rec ) throws Exception {
-        getDao().updateOmimTable(rec.getMimNumber(), rec.getPhenotype());
+        getDao().updateOmimTable(rec.getMimNumber(), rec.getPhenotype(), rec.getStatus());
     }
 
     public OmimDAO getDao() {

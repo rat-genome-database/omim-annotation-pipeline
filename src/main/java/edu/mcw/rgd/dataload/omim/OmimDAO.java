@@ -7,6 +7,7 @@ import edu.mcw.rgd.dao.impl.XdbIdDAO;
 import edu.mcw.rgd.dao.spring.StringListQuery;
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.Gene;
+import edu.mcw.rgd.datamodel.Omim;
 import edu.mcw.rgd.datamodel.SpeciesType;
 import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
@@ -34,6 +35,7 @@ public class OmimDAO {
 
     AnnotationDAO annotationDAO = new AnnotationDAO();
     GeneDAO geneDAO = new GeneDAO();
+    edu.mcw.rgd.dao.impl.OmimDAO omimDAO = new edu.mcw.rgd.dao.impl.OmimDAO();
     OntologyXDAO ontologyXDAO = new OntologyXDAO();
     XdbIdDAO xdbIdDAO = new XdbIdDAO();
 
@@ -285,19 +287,18 @@ public class OmimDAO {
         return StringListQuery.execute(geneDAO, sql);
     }
 
-    public void updateOmimTable( String mimNr, String phenotype ) throws Exception {
-        String sql = "SELECT mim_number,phenotype FROM omim WHERE mim_number=?";
-        List<StringMapQuery.MapPair> r = StringMapQuery.execute(geneDAO, sql, mimNr);
-        if( r.isEmpty() ) {
-            sql = "INSERT INTO omim (mim_number,phenotype) VALUES(?,?)";
-            geneDAO.update(sql, mimNr, phenotype);
+    public void updateOmimTable( String mimNr, String phenotype, String status ) throws Exception {
+
+        Omim omimIncoming = new Omim();
+        omimIncoming.setStatus(status);
+        omimIncoming.setPhenotype(phenotype);
+        omimIncoming.setMimNumber(mimNr);
+
+        Omim omim = omimDAO.getOmimByNr(mimNr);
+        if( omim==null ) {
+            omimDAO.insertOmim(omimIncoming);
         } else {
-            // see if phenotype needs an update
-            String phenotypeInRgd = r.get(0).stringValue;
-            if( !Utils.stringsAreEqual(phenotypeInRgd, phenotype) ) {
-                sql = "UPDATE omim SET phenotype=? WHERE mim_number=?";
-                geneDAO.update(sql, phenotype, mimNr);
-            }
+            omimDAO.updateOmim(omimIncoming);
         }
     }
 
