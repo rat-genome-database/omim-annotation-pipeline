@@ -287,12 +287,13 @@ public class OmimDAO {
         return StringListQuery.execute(geneDAO, sql);
     }
 
-    public void updateOmimTable( String mimNr, String phenotype, String status ) throws Exception {
+    public void updateOmimTable( String mimNr, String phenotype, String status, String mimType ) throws Exception {
 
         Omim omimIncoming = new Omim();
         omimIncoming.setStatus(status);
         omimIncoming.setPhenotype(phenotype);
         omimIncoming.setMimNumber(mimNr);
+        omimIncoming.setMimType(mimType);
 
         Omim omim = omimDAO.getOmimByNr(mimNr);
         if( omim==null ) {

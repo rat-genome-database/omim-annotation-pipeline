@@ -125,7 +125,7 @@ public class PreProcessor extends RecordPreprocessor {
                 if( psNumbers!=null && phenotypeMimNumber!=null ) {
                     getOmimPSMap().addMapping(psNumbers, "OMIM:"+phenotypeMimNumber.intValue());
                 }
-                rec.phenotype = (String) phenotypeMap.get("phenotype");
+                rec.setPhenotype( (String) phenotypeMap.get("phenotype") );
             }
         }
     }
