@@ -3,6 +3,9 @@ TODO: inserted annots should go to inserted.log
       annots.log ?!?
       loader: report change in phenotype for OMIM ids
 
+May 02, 2019, v. 1.5.5
+  loader: improved loading of 'phenotype' field
+
 May 01, 2019, v. 1.5.4
   loader: added loading/update of 'mim_type' field in OMIM table
 

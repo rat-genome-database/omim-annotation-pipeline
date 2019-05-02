@@ -95,26 +95,47 @@ public class PreProcessor extends RecordPreprocessor {
 
             rec.status = (String) entry.get("status");
 
-            JSONObject geneMap = (JSONObject) entry.get("geneMap");
-            if( geneMap==null ) {
-                continue;
+            JSONObject titles = (JSONObject) entry.get("titles");
+            if( titles!=null ) {
+                String preferredTitle = (String) titles.get("preferredTitle");
+                // example: "DISCS LARGE, DROSOPHILA, HOMOLOG OF, 3; DLG3"
+                //  we want only first part, up to first "; "
+                int semiPos = preferredTitle.indexOf("; ");
+                if( semiPos>0 ) {
+                    preferredTitle = preferredTitle.substring(0, semiPos);
+                }
+                rec.preferredTitle = preferredTitle;
+
+                if( rec.getType().contains("phenotype") ) {
+                    rec.setPhenotype(rec.preferredTitle);
+                }
             }
 
-            String chr = (String) geneMap.get("chromosomeSymbol");
-            Long locStart = (Long) geneMap.get("chromosomeLocationStart");
-            Long locEnd = (Long) geneMap.get("chromosomeLocationEnd");
-            String geneSymbols = (String) geneMap.get("geneSymbols");
+            JSONArray phenotypeMapList = null;
+            JSONObject geneMap = (JSONObject) entry.get("geneMap");
+            if( geneMap!=null ) {
+                String chr = (String) geneMap.get("chromosomeSymbol");
+                Long locStart = (Long) geneMap.get("chromosomeLocationStart");
+                Long locEnd = (Long) geneMap.get("chromosomeLocationEnd");
+                String geneSymbols = (String) geneMap.get("geneSymbols");
 
-            rec.chr = chr;
-            rec.geneSymbols = geneSymbols;
-            // start and stop position in json data is 0-based; in RGD, we have 1-based coordinates
-            rec.startPos = locStart==null ? 0 : 1+locStart.intValue();
-            rec.stopPos = locEnd==null ? 0 : 1+locEnd.intValue();
+                rec.chr = chr;
+                rec.geneSymbols = geneSymbols;
+                // start and stop position in json data is 0-based; in RGD, we have 1-based coordinates
+                rec.startPos = locStart==null ? 0 : 1+locStart.intValue();
+                rec.stopPos = locEnd==null ? 0 : 1+locEnd.intValue();
 
-            JSONArray phenotypeMapList = (JSONArray) geneMap.get("phenotypeMapList");
+                phenotypeMapList = (JSONArray) geneMap.get("phenotypeMapList");
+            }
+
+
+            if( phenotypeMapList==null ) {
+                phenotypeMapList = (JSONArray) entry.get("phenotypeMapList");
+            }
             if( phenotypeMapList==null ) {
                 continue;
             }
+
             for( Object p: phenotypeMapList ) {
                 JSONObject phenotypeMap = (JSONObject) ((JSONObject) p).get("phenotypeMap");
                 String psNumbers = (String) phenotypeMap.get("phenotypicSeriesNumber");
@@ -125,7 +146,9 @@ public class PreProcessor extends RecordPreprocessor {
                 if( psNumbers!=null && phenotypeMimNumber!=null ) {
                     getOmimPSMap().addMapping(psNumbers, "OMIM:"+phenotypeMimNumber.intValue());
                 }
-                rec.setPhenotype( (String) phenotypeMap.get("phenotype") );
+                if( phenotypeMapList.size()==1 ) {
+                    rec.setPhenotype((String) phenotypeMap.get("phenotype"));
+                }
             }
         }
     }

@@ -25,6 +25,7 @@ public class OmimRecord extends PipelineRecord {
 
     // incoming data from OMIM API query
     String status; // 'live', etc
+    String preferredTitle;
     String geneSymbols;
     String chr;
     int startPos;
