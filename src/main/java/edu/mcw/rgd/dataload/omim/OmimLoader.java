@@ -21,6 +21,8 @@ public class OmimLoader {
 
         Date yesterday = Utils.addDaysToDate(new Date(), -1);
 
+        preProcessor.init();
+
         OmimDAO dao = new OmimDAO();
         qcProcessor.setDao(dao);
         loadProcessor.setDao(dao);

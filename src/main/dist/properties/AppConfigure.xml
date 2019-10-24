@@ -1,11 +1,11 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline v.1.5.5, May 2, 2019"/>
+        <property name="version" value="OmimPipeline   -- build 2019-10-24"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
-        <property name="version" value="OmimIdPipeline v.2.0.5, May 2, 2019"/>
+        <property name="version" value="OmimIdPipeline   -- build 2019-10-24"/>
         <property name="preProcessor" ref="preProcessor"/>
         <property name="qcProcessor" ref="qcProcessor"/>
         <property name="loadProcessor" ref="loadProcessor"/>
@@ -13,8 +13,9 @@
 
     <!-- in Feb 2016, reregistration was needed, and download links changed -->
 	<bean id="preProcessor" class="edu.mcw.rgd.dataload.omim.PreProcessor">
+        <property name="apiKeyFile" value="api.key"/>
         <property name="mim2geneFile" value="http://omim.org/static/omim/data/mim2gene.txt"/>
-        <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey=3XqIoOKuTw6AchXT56nFYQ&amp;format=json&amp;mimNumber="/>
+        <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey={{APIKEY}}&amp;format=json&amp;mimNumber="/>
         <property name="omimApiDownloadSleepTimeInMS" value="666"/>
         <property name="jsonFileCacheLifeInDays" value="20"/>
 	</bean>

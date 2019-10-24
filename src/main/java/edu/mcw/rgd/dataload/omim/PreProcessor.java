@@ -24,6 +24,12 @@ public class PreProcessor extends RecordPreprocessor {
     private OmimPS omimPSMap;
     private int omimApiDownloadSleepTimeInMS;
     private int jsonFileCacheLifeInDays;
+    private String apiKeyFile;
+    private String apiKey;
+
+    public void init() throws Exception {
+        apiKey = Utils.readFileAsString(getApiKeyFile()).trim();
+    }
 
     @Override
     public void process() throws Exception {
@@ -170,8 +176,11 @@ public class PreProcessor extends RecordPreprocessor {
         }
 
         if (!f.exists()) {
+
+            String omimApiUrl = getOmimApiUrl().replace("{{APIKEY}}", apiKey);
+
             FileDownloader fd = new FileDownloader();
-            fd.setExternalFile(getOmimApiUrl() + mimNumber);
+            fd.setExternalFile(omimApiUrl + mimNumber);
             fd.setLocalFile(jsonFileName);
             fd.download();
 
@@ -251,5 +260,13 @@ public class PreProcessor extends RecordPreprocessor {
 
     public int getJsonFileCacheLifeInDays() {
         return jsonFileCacheLifeInDays;
+    }
+
+    public void setApiKeyFile(String apiKeyFile) {
+        this.apiKeyFile = apiKeyFile;
+    }
+
+    public String getApiKeyFile() {
+        return apiKeyFile;
     }
 }

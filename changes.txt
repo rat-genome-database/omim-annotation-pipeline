@@ -3,6 +3,9 @@ TODO: inserted annots should go to inserted.log
       annots.log ?!?
       loader: report change in phenotype for OMIM ids
 
+Oct 24, 2019
+  loader: OMIM API key is read from local file api.key (not stored in the code on github)
+
 May 02, 2019, v. 1.5.5
   loader: improved loading of 'phenotype' field
 
