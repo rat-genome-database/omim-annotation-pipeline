@@ -11,4 +11,7 @@ fi
 
 $APPHOME/_run.sh -qc_thread_count=6
 
-mailx -s "[$SERVER] OMIM pipeline OK!" $EMAIL_LIST < $APPHOME/logs/summary.log
+# sometimes summary.log contains a bunch of null characters (occasional bug in log4j2 lib)
+# we remove them before sending the final email
+tr -d '\000' < $APPHOME/logs/summary.log > $APPHOME/logs/summary_no_nulls.log
+mailx -s "[$SERVER] OMIM pipeline OK!" $EMAIL_LIST < $APPHOME/logs/summary_no_nulls.log

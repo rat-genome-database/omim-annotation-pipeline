@@ -6,6 +6,7 @@ TODO: inserted annots should go to inserted.log
 Dec 02, 2019
   loader: all requests to OMIM endpoints should use https not http
     reason: OMIM turns off the HTTP redirection on Jan 1st 2020 to increase security
+  summary email: strip nulls from the file before sending
 
 Oct 24, 2019
   loader: OMIM API key is read from local file api.key (not stored in the code on github)
