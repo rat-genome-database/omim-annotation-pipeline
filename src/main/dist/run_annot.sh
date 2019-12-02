@@ -9,6 +9,6 @@ if [ "$SERVER" == "REED" ]; then
   EMAIL_LIST=mtutaj@mcw.edu,jrsmith@mcw.edu,slaulederkind@mcw.edu
 fi
 
-$APPHOME/_run.sh -annotations -qc_thread_count=6
+$APPHOME/_run.sh -annotations
 
 mailx -s "[$SERVER] Omim Annotation pipeline OK" $EMAIL_LIST < $APPHOME/logs/summary_annot.log
