@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author mtutaj
@@ -89,7 +90,9 @@ public class PreProcessor extends RecordPreprocessor {
 
     void getGeneInfoFromOmimApi(OmimRecord rec) throws Exception {
 
-        JSONObject jsonTree = getJsonContent(rec.getMimNumber());
+        AtomicInteger retryCount = new AtomicInteger(0);
+
+        JSONObject jsonTree = getJsonContent(rec.getMimNumber(), retryCount);
 
         JSONObject root = (JSONObject) jsonTree.get("omim");
         JSONArray records = (JSONArray) root.get("entryList");
@@ -159,7 +162,7 @@ public class PreProcessor extends RecordPreprocessor {
         }
     }
 
-    JSONObject getJsonContent(String mimNumber) throws Exception {
+    JSONObject getJsonContent(String mimNumber, AtomicInteger retryCount) throws Exception {
 
         String jsonFileName = "data/json/" + mimNumber + ".json";
         File f = new File(jsonFileName);
@@ -196,11 +199,21 @@ public class PreProcessor extends RecordPreprocessor {
         } catch( Exception e ) {
             System.out.println("WARN: problem parsing file for OMIM:"+mimNumber);
 
-            // delete the file and retry
             if( f.exists() ) {
-                f.delete();
-                System.out.println("File "+jsonFileName+" deleted. Retrying...");
-                return getJsonContent(mimNumber);
+
+                final int maxRetryCount = 5;
+                int thisRetryCount = retryCount.incrementAndGet();
+                if( thisRetryCount<maxRetryCount ) {
+
+                    // delete the file and retry
+                    f.delete();
+                    System.out.println("File "+jsonFileName+" deleted. Retrying...");
+
+                    return getJsonContent(mimNumber, retryCount);
+                } else {
+                    //exceeded maximum retry count
+                    throw new RuntimeException("ERROR: problem with downloading the file "+jsonFileName+" -- reached maximum number of download retries == 5 -- aborting the pipeline");
+                }
             }
         }
 

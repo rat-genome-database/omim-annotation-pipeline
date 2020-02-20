@@ -63,6 +63,8 @@ public class Manager {
             logStatus.error(err);
             System.err.println(err);
 
+            logStatus.info("=== ERROR === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis())+"\n");
+
             System.exit(-5);
         }
 
