@@ -3,6 +3,9 @@ TODO: inserted annots should go to inserted.log
       annots.log ?!?
       loader: report change in phenotype for OMIM ids
 
+Feb 21, 2020
+  loader: refactored to use java streams, code simplified
+
 Feb 20, 2020
   loader: aborts the pipeline after five unsuccessful attempt to download an input file
 

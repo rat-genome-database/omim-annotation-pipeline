@@ -4,8 +4,7 @@ import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
-import edu.mcw.rgd.pipelines.PipelineRecord;
-import edu.mcw.rgd.pipelines.RecordProcessor;
+import edu.mcw.rgd.process.CounterPool;
 import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,19 +15,22 @@ import java.util.*;
  * @author mtutaj
  * @since Apr 28, 2011
  */
-public class QCProcessor extends RecordProcessor {
+public class QCProcessor {
 
     protected final Logger logMultis = LogManager.getLogger("multis");
     protected final Logger logInactive = LogManager.getLogger("omim_inactive");
 
-    int humanMapKey = 38; // human assembly GRCh38
+    final int humanMapKey = 38; // human assembly GRCh38
 
     private OmimDAO dao;
+    private CounterPool counters;
 
-    @Override
-    public void process(PipelineRecord pipelineRecord) throws Exception {
+    public void init(OmimDAO dao, CounterPool counters) {
+        this.dao = dao;
+        this.counters = counters;
+    }
 
-        OmimRecord rec = (OmimRecord) pipelineRecord;
+    public void qc(OmimRecord rec) throws Exception {
 
         qcStatus(rec);
 
@@ -54,13 +56,13 @@ public class QCProcessor extends RecordProcessor {
 
     void qcStatus(OmimRecord rec) throws Exception {
 
-        getSession().incrementCounter("OMIM_STATUS_"+rec.getStatus().toUpperCase(), 1);
+        counters.increment("OMIM_STATUS_"+rec.getStatus().toUpperCase());
 
         if( !rec.getStatus().equals("live") ) {
             // OMIM id is inactive -- see if there are any OMIM ids in RGD
             List<Term> terms = dao.getRdoTermsBySynonym(rec.getMimNumber());
             if( !terms.isEmpty() ) {
-                getSession().incrementCounter("INACTIVE_OMIM_IDS_IN_RGD", 1);
+                counters.increment("INACTIVE_OMIM_IDS_IN_RGD");
                 for( Term term: terms ) {
                     logInactive.info(rec.getMimNumber()+" in term "+term.getAccId()+" ["+term.getTerm()+"]");
                 }
@@ -120,7 +122,7 @@ public class QCProcessor extends RecordProcessor {
         // if there are multiple matching genes, raise a flag
         if( rec.getRgdGenes().size()>1 ) {
             rec.setFlag("MULTIPLE_GENE_MATCH");
-            getSession().incrementCounter("CONFLICT_MULTIPLE_GENE_MATCH", 1);
+            counters.increment("CONFLICT_MULTIPLE_GENE_MATCH");
 
             String msg = "OMIM:"+rec.mimId+" matches multiple genes\n";
             for( Gene gene: rec.getRgdGenes() ) {

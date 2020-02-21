@@ -1,7 +1,7 @@
 package edu.mcw.rgd.dataload.omim;
 
 import edu.mcw.rgd.datamodel.XdbId;
-import edu.mcw.rgd.pipelines.PipelineManager;
+import edu.mcw.rgd.process.CounterPool;
 import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.Logger;
 
@@ -17,15 +17,15 @@ public class OmimLoader {
     private QCProcessor qcProcessor;
     private LoadProcessor loadProcessor;
 
-    void run(Logger log, int qcThreadCount) throws Exception {
+    void run(Logger log) throws Exception {
 
         Date yesterday = Utils.addDaysToDate(new Date(), -1);
 
-        preProcessor.init();
+        CounterPool counters = new CounterPool();
 
         OmimDAO dao = new OmimDAO();
-        qcProcessor.setDao(dao);
-        loadProcessor.setDao(dao);
+        qcProcessor.init(dao, counters);
+        loadProcessor.init(dao, counters);
         log.info("   "+dao.getConnectionInfo());
 
         OmimPS omimPSMap = new OmimPS();
@@ -33,23 +33,28 @@ public class OmimLoader {
 
         log.info(getVersion());
 
-        final int recPoolSize = 15000;
-        PipelineManager manager = new PipelineManager();
-        manager.addPipelineWorkgroup(preProcessor, "PP", 1, recPoolSize);
-        manager.addPipelineWorkgroup(qcProcessor, "QC", qcThreadCount, recPoolSize);
-        manager.addPipelineWorkgroup(loadProcessor, "DL", 1, recPoolSize);
-        manager.run();
+        List<OmimRecord> incomingData = preProcessor.downloadAndParseOmimData();
+
+        incomingData.parallelStream().forEach( rec -> {
+
+            try {
+                qcProcessor.qc(rec);
+                loadProcessor.load(rec);
+            } catch( Exception e ) {
+                throw new RuntimeException(e);
+            }
+        });
 
         // QC OMIM PS map
-        omimPSMap.qc(dao, manager.getSession());
+        omimPSMap.qc(dao, counters);
 
         // delete stale annotations
         List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(yesterday);
         dao.deleteOmims(staleOmimIds);
-        manager.getSession().incrementCounter("OMIM_DELETED", staleOmimIds.size());
+        counters.add("OMIM_DELETED", staleOmimIds.size());
 
         // dump counter statistics
-        manager.dumpCounters(log);
+        log.info(counters.dumpAlphabetically());
 
         omimPSMap.dumpPSIdsNotInRgd(dao, log);
     }

@@ -1,41 +1,43 @@
 package edu.mcw.rgd.dataload.omim;
 
-import edu.mcw.rgd.pipelines.PipelineRecord;
-import edu.mcw.rgd.pipelines.RecordProcessor;
+import edu.mcw.rgd.process.CounterPool;
 
 /**
  * @author mtutaj
  * Date: Apr 28, 2011
  */
-public class LoadProcessor extends RecordProcessor {
+public class LoadProcessor {
 
     private OmimDAO dao;
+    private CounterPool counters;
 
-    @Override
-    public void process(PipelineRecord pipelineRecord) throws Exception {
+    public void init(OmimDAO dao, CounterPool counters) {
+        this.dao = dao;
+        this.counters = counters;
+    }
+
+    public void load(OmimRecord rec) throws Exception {
         
-        OmimRecord rec = (OmimRecord) pipelineRecord;
-
-        getSession().incrementCounter("PROCESSED", 1);
+        counters.increment("PROCESSED");
 
         // if record contained no data, increment counter
         if( rec.isFlagSet("NO_DATA") ) {
-            getSession().incrementCounter("NO_DATA", 1);
+            counters.increment("NO_DATA");
         }
 
         // if record was not matched, increment counter
         if( rec.isFlagSet("NO_GENE_MATCH") ) {
-            getSession().incrementCounter("NO_GENE_MATCH", 1);
+            counters.increment("NO_GENE_MATCH");
         }
 
         if( rec.isFlagSet("OMIM_INSERTED") ) {
             dao.insertOmims(rec.getOmimsForInsert());
-            getSession().incrementCounter("OMIM_INSERTED", rec.getOmimsForInsert().size());
+            counters.add("OMIM_INSERTED", rec.getOmimsForInsert().size());
         }
 
         if( rec.isFlagSet("OMIM_MATCHING") ) {
             dao.updateOmims(rec.getOmimsForUpdate());
-            getSession().incrementCounter("OMIM_MATCHING", rec.getOmimsForUpdate().size());
+            counters.add("OMIM_MATCHING", rec.getOmimsForUpdate().size());
         }
 
         updateOmimTable(rec);

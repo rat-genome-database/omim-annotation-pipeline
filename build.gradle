@@ -27,8 +27,8 @@ dependencies {
     compile 'org.apache.logging.log4j:log4j-1.2-api:2.13.0' // log4j --> log4j2 bridge for FileDownloader in rgdcore
     compile 'org.apache.logging.log4j:log4j-api:2.13.0'
     compile 'org.apache.logging.log4j:log4j-core:2.13.0'
-    compile 'org.springframework:spring-beans:5.1.9.RELEASE'
-    compile 'org.springframework:spring-jdbc:5.1.9.RELEASE'
+    compile 'org.springframework:spring-beans:5.1.10.RELEASE'
+    compile 'org.springframework:spring-jdbc:5.1.10.RELEASE'
 
     compile fileTree(dir: 'lib', include: '*.jar')
 }

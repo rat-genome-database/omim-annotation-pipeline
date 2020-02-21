@@ -31,13 +31,9 @@ public class Manager {
         Manager manager = (Manager) (bf.getBean("manager"));
 
         boolean runAnnotationPipeline = false;
-        int qcThreadCount = 5;
         for( String arg: args ) {
             if( arg.contains("-annotations") ) {
                 runAnnotationPipeline = true;
-            }
-            else if( arg.startsWith("-qc_thread_count=") ) {
-                qcThreadCount = Integer.parseInt(arg.substring(17));
             }
         }
 
@@ -53,7 +49,7 @@ public class Manager {
                 loader.run(logStatus);
             } else {
                 OmimLoader loader = (OmimLoader) (bf.getBean("omimLoader"));
-                loader.run(logStatus, qcThreadCount);
+                loader.run(logStatus);
             }
         } catch(Exception e) {
             // print stack trace to error stream and std out

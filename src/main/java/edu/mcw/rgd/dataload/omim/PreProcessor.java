@@ -1,6 +1,5 @@
 package edu.mcw.rgd.dataload.omim;
 
-import edu.mcw.rgd.pipelines.RecordPreprocessor;
 import edu.mcw.rgd.process.FileDownloader;
 import edu.mcw.rgd.process.Utils;
 import org.json.simple.JSONArray;
@@ -18,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author mtutaj
  * @since Apr 28, 2011
  */
-public class PreProcessor extends RecordPreprocessor {
+public class PreProcessor {
 
     private String mim2geneFile;
     private String omimApiUrl;
@@ -28,18 +27,15 @@ public class PreProcessor extends RecordPreprocessor {
     private String apiKeyFile;
     private String apiKey;
 
-    public void init() throws Exception {
-        apiKey = Utils.readFileAsString(getApiKeyFile()).trim();
-    }
+    public List<OmimRecord> downloadAndParseOmimData() throws Exception {
 
-    @Override
-    public void process() throws Exception {
+        apiKey = Utils.readFileAsString(getApiKeyFile()).trim();
 
         // download the file to a local folder
         String fileName = downloadFile();
 
         // this is a text file, tab separated
-        processMim2Gene(fileName);
+        return processMim2Gene(fileName);
     }
 
     List<String> loadMim2Gene(String fileName) throws Exception {
@@ -62,7 +58,9 @@ public class PreProcessor extends RecordPreprocessor {
         return lines;
     }
 
-    void processMim2Gene(String fileName) throws Exception {
+    List<OmimRecord> processMim2Gene(String fileName) throws Exception {
+
+        List<OmimRecord> results = new ArrayList<>();
 
         // this is a text file, tab separated
         List<String> lines = loadMim2Gene(fileName);
@@ -84,8 +82,10 @@ public class PreProcessor extends RecordPreprocessor {
 
             getGeneInfoFromOmimApi(rec);
 
-            getSession().putRecordToFirstQueue(rec);
+            results.add(rec);
         }
+
+        return results;
     }
 
     void getGeneInfoFromOmimApi(OmimRecord rec) throws Exception {
