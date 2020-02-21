@@ -77,7 +77,6 @@ public class PreProcessor {
             if( words.length>=4 ) {
                 rec.setGeneId(words[2]);
                 rec.setGeneSymbol(words[3]);
-                rec.setRecNo(Integer.parseInt(rec.getMimNumber()));
             }
 
             getGeneInfoFromOmimApi(rec);

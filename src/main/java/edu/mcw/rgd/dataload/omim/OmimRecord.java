@@ -2,7 +2,6 @@ package edu.mcw.rgd.dataload.omim;
 
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.XdbId;
-import edu.mcw.rgd.pipelines.PipelineRecord;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,7 +13,7 @@ import java.util.Set;
  * Date: Apr 29, 2011
  * custom omim data, both read from incoming data and from rgd database
  */
-public class OmimRecord extends PipelineRecord {
+public class OmimRecord {
 
     // incoming data from mim2gene file
     String mimId;
@@ -40,6 +39,9 @@ public class OmimRecord extends PipelineRecord {
 
     // to be updated omim ids
     List<Integer> omimsForUpdate = new ArrayList<Integer>();
+
+    private Set<String> flags = new HashSet<>();
+
 
     public String getMimNumber() {
         return mimId;
@@ -107,5 +109,13 @@ public class OmimRecord extends PipelineRecord {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public boolean isFlagSet(String flag) {
+        return flags.contains(flag);
+    }
+
+    public void setFlag(String flag) {
+        flags.add(flag);
     }
 }
