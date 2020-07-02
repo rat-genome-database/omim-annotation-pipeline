@@ -8,7 +8,6 @@
         <property name="version" value="OmimIdPipeline   -- build 2020-07-02"/>
         <property name="preProcessor" ref="preProcessor"/>
         <property name="qcProcessor" ref="qcProcessor"/>
-        <property name="loadProcessor" ref="loadProcessor"/>
     </bean>
 
     <!-- in Feb 2016, reregistration was needed, and download links changed -->
@@ -21,9 +20,6 @@
 	</bean>
 
     <bean id="qcProcessor" class="edu.mcw.rgd.dataload.omim.QCProcessor">
-    </bean>
-
-    <bean id="loadProcessor" class="edu.mcw.rgd.dataload.omim.LoadProcessor">
     </bean>
 
     <bean id="annotationLoader" class="edu.mcw.rgd.dataload.omim.AnnotationLoader">

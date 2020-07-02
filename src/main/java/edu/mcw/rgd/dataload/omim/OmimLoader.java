@@ -15,7 +15,6 @@ public class OmimLoader {
     private String version;
     private PreProcessor preProcessor;
     private QCProcessor qcProcessor;
-    private LoadProcessor loadProcessor;
 
     void run(Logger log) throws Exception {
 
@@ -25,7 +24,6 @@ public class OmimLoader {
 
         OmimDAO dao = new OmimDAO();
         qcProcessor.init(dao, counters);
-        loadProcessor.init(dao, counters);
         log.info("   "+dao.getConnectionInfo());
 
         OmimPS omimPSMap = new OmimPS();
@@ -39,7 +37,7 @@ public class OmimLoader {
 
             try {
                 qcProcessor.qc(rec);
-                loadProcessor.load(rec);
+                load(rec, dao, counters);
             } catch( Exception e ) {
                 throw new RuntimeException(e);
             }
@@ -57,6 +55,44 @@ public class OmimLoader {
         log.info(counters.dumpAlphabetically());
 
         omimPSMap.dumpPSIdsNotInRgd(dao, log);
+    }
+
+    public void load(OmimRecord rec, OmimDAO dao, CounterPool counters) throws Exception {
+
+        counters.increment("PROCESSED");
+
+        // if record contained no data, increment counter
+        if( rec.isFlagSet("NO_DATA") ) {
+            counters.increment("NO_DATA");
+        }
+
+        // if record was not matched, increment counter
+        if( rec.isFlagSet("NO_GENE_MATCH") ) {
+            counters.increment("NO_GENE_MATCH");
+        }
+
+        if( rec.isFlagSet("OMIM_INSERTED") ) {
+            dao.insertOmims(rec.getOmimsForInsert());
+            counters.add("OMIM_INSERTED", rec.getOmimsForInsert().size());
+        }
+
+        if( rec.isFlagSet("OMIM_MATCHING") ) {
+            dao.updateOmims(rec.getOmimsForUpdate());
+            counters.add("OMIM_MATCHING", rec.getOmimsForUpdate().size());
+        }
+
+        updateOmimTable(rec, dao, counters);
+    }
+
+    void updateOmimTable( OmimRecord rec, OmimDAO dao, CounterPool counters ) throws Exception {
+        int r = dao.updateOmimTable(rec.getMimNumber(), rec.getPhenotype(), rec.getStatus(), rec.getType());
+        if( r==1 ) {
+            counters.increment("OMIM_ENTRIES_INSERTED");
+        } else if( r==0 ){
+            counters.increment("OMIM_ENTRIES_UP_TO_DATE");
+        } else if( r==2 ){
+            counters.increment("OMIM_ENTRIES_UPDATED");
+        }
     }
 
     public void setVersion(String version) {
@@ -81,13 +117,5 @@ public class OmimLoader {
 
     public void setQcProcessor(QCProcessor qcProcessor) {
         this.qcProcessor = qcProcessor;
-    }
-
-    public LoadProcessor getLoadProcessor() {
-        return loadProcessor;
-    }
-
-    public void setLoadProcessor(LoadProcessor loadProcessor) {
-        this.loadProcessor = loadProcessor;
     }
 }

@@ -5,7 +5,8 @@ TODO: inserted annots should go to inserted.log
 
 Jul 02, 2020
   loader: added tracking of changes in OMIM table
-
+          refactored code to simplify
+          
 Feb 21, 2020
   loader: refactored to use java streams, code simplified
 
