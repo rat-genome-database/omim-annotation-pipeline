@@ -287,7 +287,16 @@ public class OmimDAO {
         return StringListQuery.execute(geneDAO, sql);
     }
 
-    public void updateOmimTable( String mimNr, String phenotype, String status, String mimType ) throws Exception {
+    /**
+     *
+     * @param mimNr
+     * @param phenotype
+     * @param status
+     * @param mimType
+     * @return 0 - up-to-date, 1 - inserted, 2 - updated
+     * @throws Exception
+     */
+    public int updateOmimTable( String mimNr, String phenotype, String status, String mimType ) throws Exception {
 
         Omim omimIncoming = new Omim();
         omimIncoming.setStatus(status);
@@ -298,8 +307,15 @@ public class OmimDAO {
         Omim omim = omimDAO.getOmimByNr(mimNr);
         if( omim==null ) {
             omimDAO.insertOmim(omimIncoming);
+            return 1;
+        }
+
+        // check if anything changed in the omim entry
+        if( omim.equals(omimIncoming) ) {
+            return 0;
         } else {
             omimDAO.updateOmim(omimIncoming);
+            return 2;
         }
     }
 

@@ -44,7 +44,14 @@ public class LoadProcessor {
     }
 
     void updateOmimTable( OmimRecord rec ) throws Exception {
-        getDao().updateOmimTable(rec.getMimNumber(), rec.getPhenotype(), rec.getStatus(), rec.getType());
+        int r = getDao().updateOmimTable(rec.getMimNumber(), rec.getPhenotype(), rec.getStatus(), rec.getType());
+        if( r==1 ) {
+            counters.increment("OMIM_ENTRIES_INSERTED");
+        } else if( r==0 ){
+            counters.increment("OMIM_ENTRIES_UP_TO_DATE");
+        } else if( r==2 ){
+            counters.increment("OMIM_ENTRIES_UPDATED");
+        }
     }
 
     public OmimDAO getDao() {

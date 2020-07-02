@@ -22,13 +22,14 @@ repositories {
 dependencies {
     compile 'org.apache.commons:commons-dbcp2:2.7.0'
 	compile 'commons-net:commons-net:3.6'
-	compile 'org.apache.httpcomponents:httpclient:4.5.11'
+	compile 'org.apache.httpcomponents:httpclient:4.5.12'
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
-    compile 'org.apache.logging.log4j:log4j-1.2-api:2.13.0' // log4j --> log4j2 bridge for FileDownloader in rgdcore
-    compile 'org.apache.logging.log4j:log4j-api:2.13.0'
-    compile 'org.apache.logging.log4j:log4j-core:2.13.0'
-    compile 'org.springframework:spring-beans:5.1.10.RELEASE'
-    compile 'org.springframework:spring-jdbc:5.1.10.RELEASE'
+    compile 'org.apache.logging.log4j:log4j-1.2-api:2.13.1' // log4j --> log4j2 bridge for FileDownloader in rgdcore
+    compile 'org.apache.logging.log4j:log4j-api:2.13.1'
+    compile 'org.apache.logging.log4j:log4j-core:2.13.1'
+    compile 'com.oracle.ojdbc:ojdbc8:19.3.0.0'
+    compile 'org.springframework:spring-beans:5.2.0.RELEASE'
+    compile 'org.springframework:spring-jdbc:5.2.0.RELEASE'
 
     compile fileTree(dir: 'lib', include: '*.jar')
 }
