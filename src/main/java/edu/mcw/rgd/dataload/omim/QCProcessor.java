@@ -115,14 +115,15 @@ public class QCProcessor {
 
         // if there are no matching genes, raise a flag
         if( rec.getRgdGenes().isEmpty() ) {
-            rec.setFlag("NO_GENE_MATCH");
+            rec.setFlag("MATCH_NO_GENE");
+            counters.increment("MATCH_NO_GENE");
             return;
         }
 
         // if there are multiple matching genes, raise a flag
         if( rec.getRgdGenes().size()>1 ) {
-            rec.setFlag("MULTIPLE_GENE_MATCH");
-            counters.increment("CONFLICT_MULTIPLE_GENE_MATCH");
+            rec.setFlag("MATCH_MULTIPLE_GENES");
+            counters.increment("MATCH_MULTIPLE_GENES");
 
             String msg = "OMIM:"+rec.mimId+" matches multiple genes\n";
             for( Gene gene: rec.getRgdGenes() ) {
@@ -133,7 +134,8 @@ public class QCProcessor {
         }
 
         // single gene match
-        rec.setFlag("GENE_MATCH");
+        rec.setFlag("MATCH_SINGLE_GENE");
+        counters.increment("MATCH_SINGLE_GENE");
 
         // get omim ids for matching gene
         for( Gene gene: rec.getRgdGenes() ) {

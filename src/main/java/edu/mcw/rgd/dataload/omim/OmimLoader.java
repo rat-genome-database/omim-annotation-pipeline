@@ -66,11 +66,6 @@ public class OmimLoader {
             counters.increment("NO_DATA");
         }
 
-        // if record was not matched, increment counter
-        if( rec.isFlagSet("NO_GENE_MATCH") ) {
-            counters.increment("NO_GENE_MATCH");
-        }
-
         if( rec.isFlagSet("OMIM_INSERTED") ) {
             dao.insertOmims(rec.getOmimsForInsert());
             counters.add("OMIM_INSERTED", rec.getOmimsForInsert().size());
