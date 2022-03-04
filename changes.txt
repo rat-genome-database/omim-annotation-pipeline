@@ -3,6 +3,9 @@ TODO: inserted annots should go to inserted.log
       annots.log ?!?
       loader: report change in phenotype for OMIM ids
 
+Mar 04, 2022
+  updated log4j to avoid zero day exploit
+
 Apr 28, 2021
   loader: improved logging
   

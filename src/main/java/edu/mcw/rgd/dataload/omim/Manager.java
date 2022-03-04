@@ -7,8 +7,6 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.FileSystemResource;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -53,15 +51,11 @@ public class Manager {
             }
         } catch(Exception e) {
             // print stack trace to error stream and std out
-            ByteArrayOutputStream bs = new ByteArrayOutputStream();
-            e.printStackTrace(new PrintStream(bs));
-            String err = bs.toString();
-            logStatus.error(err);
-            System.err.println(err);
+            Utils.printStackTrace(e, logStatus);
 
             logStatus.info("=== ERROR === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis())+"\n");
 
-            System.exit(-5);
+            throw new Exception(e);
         }
 
         logStatus.info("=== OK === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis())+"\n");
