@@ -24,6 +24,9 @@ public class AnnotationLoader {
     private int refRgdId;
     private String deleteThresholdForStaleAnnotations;
     private String dataSource;
+    private String evidenceCode;
+    private String evidenceCodeForOrtho;
+
     private Logger log;
     private CounterPool counters;
 
@@ -109,7 +112,7 @@ public class AnnotationLoader {
                 ann.setAspect("D");
                 ann.setCreatedBy(getCreatedBy());
                 ann.setDataSrc(getDataSource());
-                ann.setEvidence("IAGP");
+                ann.setEvidence(getEvidenceCode());
                 ann.setLastModifiedBy(getCreatedBy());
                 ann.setLastModifiedDate(ann.getCreatedDate());
                 ann.setTerm(rec.term.getTerm());
@@ -128,7 +131,7 @@ public class AnnotationLoader {
 
                     Annotation annOrtho = (Annotation) ann.clone();
                     annOrtho.setAnnotatedObjectRgdId(ortholog.getRgdId());
-                    annOrtho.setEvidence("ISO");
+                    annOrtho.setEvidence(getEvidenceCodeForOrtho());
                     annOrtho.setWithInfo("RGD:"+xdbId.getRgdId());
                     annOrtho.setObjectName(ortholog.getName());
                     annOrtho.setObjectSymbol(ortholog.getSymbol());
@@ -246,6 +249,22 @@ public class AnnotationLoader {
 
     public String getDataSource() {
         return dataSource;
+    }
+
+    public String getEvidenceCode() {
+        return evidenceCode;
+    }
+
+    public void setEvidenceCode(String evidenceCode) {
+        this.evidenceCode = evidenceCode;
+    }
+
+    public String getEvidenceCodeForOrtho() {
+        return evidenceCodeForOrtho;
+    }
+
+    public void setEvidenceCodeForOrtho(String evidenceCodeForOrtho) {
+        this.evidenceCodeForOrtho = evidenceCodeForOrtho;
     }
 
     class OmimAnnotRecord {

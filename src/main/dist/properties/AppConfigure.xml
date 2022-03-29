@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline   -- build Mar 04, 2022"/>
+        <property name="version" value="OmimPipeline   -- build Mar 29, 2022"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
@@ -23,10 +23,12 @@
     </bean>
 
     <bean id="annotationLoader" class="edu.mcw.rgd.dataload.omim.AnnotationLoader">
-        <property name="version" value="OmimAnnotationPipeline v. 1.1.0, Apr 11, 2019"/>
+        <property name="version" value="OmimAnnotationPipeline   -- build Mar 29, 2022"/>
         <property name="createdBy" value="192"/>
         <property name="refRgdId" value="7240710"/>
         <property name="dataSource" value="OMIM"/>
         <property name="deleteThresholdForStaleAnnotations" value="5%"/>
+        <property name="evidenceCode" value="IAGP"/><!-- evidence code for primary annotations -->
+        <property name="evidenceCodeForOrtho" value="ISO"/><!-- evidence code for ortholog annotations -->
     </bean>
 </beans>
