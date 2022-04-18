@@ -2,11 +2,11 @@
 <Configuration>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
 
         <RollingFile name="status" append="true" fileName="logs/status.log" filePattern="logs/status.log.%d{yyyy-MM}">
-            <PatternLayout pattern="%d %p [%c] - %m%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
@@ -16,7 +16,7 @@
         </File>
 
         <RollingFile name="status_annot" append="true" fileName="logs/status_annot.log" filePattern="logs/status_annot.log.%d{yyyy-MM}">
-            <PatternLayout pattern="%d %p [%c] - %m%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
@@ -26,37 +26,37 @@
         </File>
 
         <RollingFile name="omim_inserted" append="true" fileName="logs/inserted.log" filePattern="logs/inserted.log.%d{yyyy-MM}">
-            <PatternLayout pattern="[%d] - %m%n"/>
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
         <RollingFile name="omim_deleted" append="true" fileName="logs/deleted.log" filePattern="logs/deleted.log.%d{yyyy-MM}">
-            <PatternLayout pattern="[%d] - %m%n"/>
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
         <RollingFile name="omim_inactive" append="true" fileName="logs/inactive.log" filePattern="logs/inactive.log.%d{yyyy-MM}">
-            <PatternLayout pattern="[%d] - %m%n"/>
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
         <RollingFile name="omim_ps" append="true" fileName="logs/omim_ps.log" filePattern="logs/omim_ps.log.%d{yyyy-MM}">
-            <PatternLayout pattern="[%d] - %m%n"/>
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
         <RollingFile name="multis" append="true" fileName="logs/multis.log" filePattern="logs/multis.log.%d{yyyy-MM}">
-            <PatternLayout pattern="[%d] - %m%n"/>
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
         <RollingFile name="annots" append="true" fileName="logs/annots.log" filePattern="logs/annots.log.%d{yyyy-MM}">
-            <PatternLayout pattern="[%d] - %m%n"/>
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>

@@ -3,6 +3,9 @@ TODO: inserted annots should go to inserted.log
       annots.log ?!?
       loader: report change in phenotype for OMIM ids
 
+Apr 18, 2022
+  logging tune up
+
 Mar 29, 2022
   annotator: evidence codes for primary and orthologous annotations are now loaded from property file
 

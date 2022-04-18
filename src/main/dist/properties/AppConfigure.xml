@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline   -- build Mar 29, 2022"/>
+        <property name="version" value="OmimPipeline   -- build Apr 18, 2022"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
