@@ -55,7 +55,13 @@
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
-        <RollingFile name="annots" append="true" fileName="logs/annots.log" filePattern="logs/annots.log.%d{yyyy-MM}">
+        <RollingFile name="annots_deleted" append="true" fileName="logs/annots_deleted.log" filePattern="logs/annots_deleted.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="annots_inserted" append="true" fileName="logs/annots_inserted.log" filePattern="logs/annots_inserted.log.%d{yyyy-MM}">
             <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>
@@ -73,7 +79,7 @@
             <AppenderRef ref="summary"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
-        <Logger name="status_annot" level="info" additivity="false">
+        <Logger name="annots" level="info" additivity="false">
             <AppenderRef ref="status_annot"/>
             <AppenderRef ref="summary_annot"/>
             <AppenderRef ref="Console" level="info"/>
@@ -99,8 +105,12 @@
             <AppenderRef ref="multis"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
-        <Logger name="annots" level="debug" additivity="false">
-            <AppenderRef ref="annots"/>
+        <Logger name="annots_deleted" level="debug" additivity="false">
+            <AppenderRef ref="annots_deleted"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="annots_inserted" level="debug" additivity="false">
+            <AppenderRef ref="annots_inserted"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
     </Loggers>

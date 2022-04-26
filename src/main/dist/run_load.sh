@@ -6,10 +6,10 @@ APPHOME=/home/rgddata/pipelines/OmimPipeline
 
 EMAIL_LIST=mtutaj@mcw.edu
 if [ "$SERVER" == "REED" ]; then
-  EMAIL_LIST=rgd.developers@mcw.edu,jrsmith@mcw.edu
+  EMAIL_LIST=rgd.devops@mcw.edu,jrsmith@mcw.edu
 fi
 
-$APPHOME/_run.sh -qc_thread_count=6
+$APPHOME/_run.sh
 
 # sometimes summary.log contains a bunch of null characters (occasional bug in log4j2 lib)
 # we remove them before sending the final email

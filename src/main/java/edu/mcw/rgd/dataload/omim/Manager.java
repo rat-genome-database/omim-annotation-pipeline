@@ -36,7 +36,7 @@ public class Manager {
         }
 
 
-        Logger logStatus = LogManager.getLogger(runAnnotationPipeline ? "status_annot" : "status");
+        Logger logStatus = LogManager.getLogger(runAnnotationPipeline ? "annots" : "status");
         logStatus.info(manager.getVersion());
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         logStatus.info("   started at "+sdt.format(new Date(time0)));

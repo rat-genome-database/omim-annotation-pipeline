@@ -4,7 +4,6 @@ import edu.mcw.rgd.dao.impl.AnnotationDAO;
 import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.dao.impl.OntologyXDAO;
 import edu.mcw.rgd.dao.impl.XdbIdDAO;
-import edu.mcw.rgd.dao.spring.StringListQuery;
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.Omim;
@@ -13,7 +12,6 @@ import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
-import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +29,8 @@ public class OmimDAO {
 
     protected final Logger logDeleted = LogManager.getLogger("omim_deleted");
     protected final Logger logInserted = LogManager.getLogger("omim_inserted");
-    protected final Logger logAnnots = LogManager.getLogger("annots");
+    protected final Logger logAnnotsDeleted = LogManager.getLogger("annots_inserted");
+    protected final Logger logAnnotsInserted = LogManager.getLogger("annots_deleted");
 
     AnnotationDAO annotationDAO = new AnnotationDAO();
     GeneDAO geneDAO = new GeneDAO();
@@ -214,7 +213,7 @@ public class OmimDAO {
     public int insertAnnotation(Annotation annot) throws Exception{
 
         int annotKey = annotationDAO.insertAnnotation(annot);
-        logAnnots.info("INSERT "+annot.dump("|"));
+        logAnnotsInserted.debug(annot.dump("|"));
         return annotKey;
     }
 
@@ -236,7 +235,7 @@ public class OmimDAO {
      */
     public int deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId, String dataSource) throws Exception{
 
-        Logger logStatus = LogManager.getLogger("status_annot");
+        Logger logStatus = LogManager.getLogger("annots");
 
         // convert delete-threshold string to number; i.e. '5%' --> '5'
         int staleAnnotDeleteThresholdPerc = Integer.parseInt(staleAnnotDeleteThresholdStr.substring(0, staleAnnotDeleteThresholdStr.length()-1));
@@ -259,7 +258,7 @@ public class OmimDAO {
 
         List<Integer> staleAnnotKeys = new ArrayList<>();
         for( Annotation ann: staleAnnots ) {
-            logAnnots.info("DELETE "+ann.dump("|"));
+            logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
             staleAnnotKeys.add(ann.getKey());
         }
         return annotationDAO.deleteAnnotations(staleAnnotKeys);

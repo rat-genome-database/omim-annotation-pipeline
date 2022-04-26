@@ -1,7 +1,8 @@
-TODO: inserted annots should go to inserted.log
-      deleted annots should go to deleted.log
-      annots.log ?!?
-      loader: report change in phenotype for OMIM ids
+TODO: loader: report change in phenotype for OMIM ids
+   loader: load omim record in json format to new BLOB column in OMIM table
+
+Apr 25, 2022
+  annotator: refactored logging
 
 Apr 18, 2022
   logging tune up
