@@ -2,7 +2,7 @@
 #
 . /etc/profile
 SERVER=`hostname -s | tr '[a-z]' '[A-Z]'`
-APPHOME=/home/rgddata/pipelines/OmimPipeline
+APPHOME=/home/rgddata/pipelines/omim-pipeline
 
 EMAIL_LIST=mtutaj@mcw.edu
 if [ "$SERVER" == "REED" ]; then

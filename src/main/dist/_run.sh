@@ -2,7 +2,7 @@
 # shell script to run Omim pipeline
 . /etc/profile
 
-APPNAME=OmimPipeline
+APPNAME="omim-pipeline"
 APPDIR=/home/rgddata/pipelines/$APPNAME
 
 cd $APPDIR
