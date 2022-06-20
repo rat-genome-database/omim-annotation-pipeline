@@ -13,7 +13,7 @@ apply plugin: 'application'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 mainClassName = 'edu.mcw.rgd.dataload.omim.Manager'
-String myAppName = 'OmimPipeline'
+String myAppName = 'omim-pipeline'
 
 project.archivesBaseName = myAppName
 
@@ -29,9 +29,9 @@ dependencies {
     compile 'org.apache.logging.log4j:log4j-1.2-api:2.17.2' // log4j --> log4j2 bridge for FileDownloader in rgdcore
     compile 'org.apache.logging.log4j:log4j-api:2.17.2'
     compile 'org.apache.logging.log4j:log4j-core:2.17.2'
-    compile 'com.oracle.database.jdbc:ojdbc8:19.10.0.0'
-    compile 'org.springframework:spring-beans:5.2.6.RELEASE'
-    compile 'org.springframework:spring-jdbc:5.2.6.RELEASE'
+    compile 'com.oracle.database.jdbc:ojdbc8:19.11.0.0'
+    compile 'org.springframework:spring-beans:5.2.7.RELEASE'
+    compile 'org.springframework:spring-jdbc:5.2.7.RELEASE'
 
     compile fileTree(dir: 'lib', include: '*.jar')
 }
