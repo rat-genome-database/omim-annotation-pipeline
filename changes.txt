@@ -1,6 +1,9 @@
 TODO: loader: report change in phenotype for OMIM ids
    loader: load omim record in json format to new BLOB column in OMIM table
 
+Jan 13, 2023
+  updated build.gradle to be gradle 6.x + compatible
+
 Jun 20, 2022
   renamed distro to 'omim-pipeline'
 
