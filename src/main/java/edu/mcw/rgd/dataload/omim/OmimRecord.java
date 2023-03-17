@@ -19,8 +19,9 @@ public class OmimRecord {
     String mimId;
     String type;
     String phenotype;
-    String geneId;
+    String geneId; // NCBI gene id
     String geneSymbol;
+    String ensemblGeneId;
 
     // incoming data from OMIM API query
     String status; // 'live', etc
@@ -81,6 +82,14 @@ public class OmimRecord {
 
     public void setGeneSymbol(String geneSymbol) {
         this.geneSymbol = geneSymbol;
+    }
+
+    public String getEnsemblGeneId() {
+        return ensemblGeneId;
+    }
+
+    public void setEnsemblGeneId(String ensemblGeneId) {
+        this.ensemblGeneId = ensemblGeneId;
     }
 
     public Set<Gene> getRgdGenes() {

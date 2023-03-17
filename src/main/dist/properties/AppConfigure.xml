@@ -5,7 +5,7 @@
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
-        <property name="version" value="OmimIdPipeline   -- build 2021-04-28"/>
+        <property name="version" value="OmimIdPipeline   -- build Mar 17, 2023"/>
         <property name="preProcessor" ref="preProcessor"/>
         <property name="qcProcessor" ref="qcProcessor"/>
     </bean>
@@ -14,6 +14,11 @@
 	<bean id="preProcessor" class="edu.mcw.rgd.dataload.omim.PreProcessor">
         <property name="apiKeyFile" value="api.key"/>
         <property name="mim2geneFile" value="https://omim.org/static/omim/data/mim2gene.txt"/>
+        <property name="mimTitlesFile" value="https://data.omim.org/downloads/{{APIKEY}}/mimTitles.txt"/>
+        <property name="genemap2File" value="https://data.omim.org/downloads/{{APIKEY}}/genemap2.txt"/>
+        <property name="morbidmapFile" value="https://data.omim.org/downloads/{{APIKEY}}/morbidmap.txt"/>
+
+        <!-- obsolete as of 2023 -->
         <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey={{APIKEY}}&amp;format=json&amp;mimNumber="/>
         <property name="omimApiDownloadSleepTimeInMS" value="777"/>
         <property name="jsonFileCacheLifeInDays" value="20"/>

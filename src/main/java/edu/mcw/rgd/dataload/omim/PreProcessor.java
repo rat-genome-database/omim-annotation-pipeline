@@ -8,9 +8,7 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -20,6 +18,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PreProcessor {
 
     private String mim2geneFile;
+    private String mimTitlesFile;
+    private String genemap2File;
+    private String morbidmapFile;
+
     private String omimApiUrl;
     private OmimPS omimPSMap;
     private int omimApiDownloadSleepTimeInMS;
@@ -31,14 +33,26 @@ public class PreProcessor {
 
         apiKey = Utils.readFileAsString(getApiKeyFile()).trim();
 
-        // download the file to a local folder
-        String fileName = downloadFile();
+        // download the files to a local folder
+        String mim2geneFileName = downloadFile(getMim2geneFile(), "mim2gene");
+        String mimTitlesFileName = downloadFile(getMimTitlesFile(), "mimTitles");
+        String genemap2FileName = downloadFile(getGenemap2File(), "genemap2");
+        String morbidmapFileName = downloadFile(getMorbidmapFile(), "morbidmap");
 
         // this is a text file, tab separated
-        return processMim2Gene(fileName);
+        List<OmimRecord> records = processMim2Gene(mim2geneFileName);
+
+        Map<String, OmimRecord> recordMap = new HashMap<>();
+        for( OmimRecord rec: records ) {
+            recordMap.put(rec.getMimNumber(), rec);
+        }
+
+        processMimTitles(mimTitlesFileName, recordMap);
+
+        return records;
     }
 
-    List<String> loadMim2Gene(String fileName) throws Exception {
+    List<String> loadFile(String fileName) throws Exception {
 
         // this is a text file, tab separated
         BufferedReader reader = Utils.openReader(fileName);
@@ -63,7 +77,61 @@ public class PreProcessor {
         List<OmimRecord> results = new ArrayList<>();
 
         // this is a text file, tab separated
-        List<String> lines = loadMim2Gene(fileName);
+        List<String> lines = loadFile(fileName);
+        for( String line: lines ) {
+
+            // split line into words
+            String[] words = line.split("[\t]", -1);
+
+            // the full data is for gene records
+            OmimRecord rec = new OmimRecord();
+            rec.setMimNumber(words[0]);
+            rec.setType(words[1]);
+            rec.setGeneId(words[2]);
+            rec.setGeneSymbol(words[3]);
+            rec.setEnsemblGeneId(words[4]);
+
+            results.add(rec);
+        }
+
+        return results;
+    }
+
+    void processMimTitles(String fileName, Map<String, OmimRecord> recordMap) throws Exception {
+
+        // this is a text file, tab separated
+        List<String> lines = loadFile(fileName);
+        for( String line: lines ) {
+
+            // split line into words
+            String[] words = line.split("[\t]", -1);
+
+            String prefix = words[0];
+            String omimId = words[1];
+            String preferredTitle = words[2];
+
+            OmimRecord rec = recordMap.get(omimId);
+
+            if( prefix.equals("Caret") ) {
+                if( preferredTitle.startsWith("MOVED TO") ) {
+                    rec.setStatus("moved");
+                } else if( preferredTitle.startsWith("REMOVED FROM DATABASE") ) {
+                    rec.setStatus("removed");
+                } else {
+                    throw new Exception("*** unexpected Caret: "+preferredTitle);
+                }
+            } else {
+                rec.setStatus("live");
+            }
+        }
+    }
+
+    List<OmimRecord> processMim2Gene_(String fileName) throws Exception {
+
+        List<OmimRecord> results = new ArrayList<>();
+
+        // this is a text file, tab separated
+        List<String> lines = loadFile(fileName);
         for( String line: lines ) {
 
             // split line into words
@@ -77,6 +145,9 @@ public class PreProcessor {
             if( words.length>=4 ) {
                 rec.setGeneId(words[2]);
                 rec.setGeneSymbol(words[3]);
+            }
+            if( words.length>=5 ) {
+                rec.setEnsemblGeneId(words[4]);
             }
 
             getGeneInfoFromOmimApi(rec);
@@ -223,14 +294,16 @@ public class PreProcessor {
      * download mim2gene.txt file, save it to a local directory
      * @return the name of the local copy of the file
      */
-    private String downloadFile() throws Exception {
+    private String downloadFile(String url, String fileName) throws Exception {
 
         FileDownloader downloader = new FileDownloader();
         downloader.setUseCompression(true);
         downloader.setPrependDateStamp(true);
 
-        downloader.setExternalFile(getMim2geneFile());
-        downloader.setLocalFile("data/mim2gene.txt.gz");
+        String url2 = url.replace("{{APIKEY}}", this.apiKey);
+
+        downloader.setExternalFile(url2);
+        downloader.setLocalFile("data/"+fileName+".txt.gz");
         return downloader.downloadNew();
     }
 
@@ -240,6 +313,30 @@ public class PreProcessor {
 
     public void setMim2geneFile(String mim2geneFile) {
         this.mim2geneFile = mim2geneFile;
+    }
+
+    public String getMimTitlesFile() {
+        return mimTitlesFile;
+    }
+
+    public void setMimTitlesFile(String mimTitlesFile) {
+        this.mimTitlesFile = mimTitlesFile;
+    }
+
+    public String getGenemap2File() {
+        return genemap2File;
+    }
+
+    public void setGenemap2File(String genemap2File) {
+        this.genemap2File = genemap2File;
+    }
+
+    public String getMorbidmapFile() {
+        return morbidmapFile;
+    }
+
+    public void setMorbidmapFile(String morbidmapFile) {
+        this.morbidmapFile = morbidmapFile;
     }
 
     public void setOmimApiUrl(String omimApiUrl) {

@@ -1,5 +1,7 @@
 TODO: loader: report change in phenotype for OMIM ids
-   loader: load omim record in json format to new BLOB column in OMIM table
+
+Mar 17, 2023
+  switched loader to use 'mimTitles','mim2gene' and 'morbidmap' files instead of API -- API access has been revoked
 
 Jan 13, 2023
   updated build.gradle to be gradle 6.x + compatible
