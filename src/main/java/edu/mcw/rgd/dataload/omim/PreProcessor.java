@@ -73,7 +73,7 @@ public class PreProcessor {
         for( String line: lines ) {
 
             // split line into words
-            String[] words = line.split("[\t]", -1);
+            String[] words = line.split("[\\t]", -1);
 
             // the full data is for gene records
             OmimRecord rec = new OmimRecord();
@@ -96,7 +96,7 @@ public class PreProcessor {
         for( String line: lines ) {
 
             // split line into words
-            String[] words = line.split("[\t]", -1);
+            String[] words = line.split("[\\t]", -1);
 
             String prefix = words[0];
             String omimId = words[1];
@@ -137,13 +137,21 @@ public class PreProcessor {
         for( String line: lines ) {
 
             // split line into words
-            String[] words = line.split("[\t]", -1);
+            String[] words = line.split("[\\t]", -1);
 
             String chr = words[0]; // 'chr1'
-            int startPos = Integer.parseInt(words[1]);
-            int stopPos = Integer.parseInt(words[2]);
             String geneSymbols = words[6]; // f.e. RBMY1A1, RBM1, YRRM1, RBM2
             String omimId = words[5]; // MIM Number for Gene/Locus (OMIM)
+
+            int startPos = 0;
+            int stopPos = 0;
+            if( !Utils.isStringEmpty(words[1]) ) {
+                startPos = Integer.parseInt(words[1]);
+            }
+            if( !Utils.isStringEmpty(words[2]) ) {
+                stopPos = Integer.parseInt(words[2]);
+            }
+
 
             OmimRecord rec = recordMap.get(omimId);
             rec.setChr(chr.substring(3)); // remove prefix 'chr'
@@ -160,7 +168,7 @@ public class PreProcessor {
         for( String line: lines ) {
 
             // split line into words
-            String[] words = line.split("[\t]", -1);
+            String[] words = line.split("[\\t]", -1);
 
             String phenotypeStr = words[0]; //
             String omimId = words[2]; // MIM Number for Gene/Locus (OMIM)
