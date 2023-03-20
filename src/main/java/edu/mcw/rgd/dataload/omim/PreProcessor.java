@@ -2,14 +2,9 @@ package edu.mcw.rgd.dataload.omim;
 
 import edu.mcw.rgd.process.FileDownloader;
 import edu.mcw.rgd.process.Utils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author mtutaj
@@ -21,11 +16,6 @@ public class PreProcessor {
     private String mimTitlesFile;
     private String genemap2File;
     private String morbidmapFile;
-
-    private String omimApiUrl;
-    private OmimPS omimPSMap;
-    private int omimApiDownloadSleepTimeInMS;
-    private int jsonFileCacheLifeInDays;
     private String apiKeyFile;
     private String apiKey;
 
@@ -48,6 +38,8 @@ public class PreProcessor {
         }
 
         processMimTitles(mimTitlesFileName, recordMap);
+        processGeneMap2(genemap2FileName, recordMap);
+        processMorbidMap(morbidmapFileName, recordMap);
 
         return records;
     }
@@ -61,9 +53,9 @@ public class PreProcessor {
         String line;
         while ((line = reader.readLine()) != null) {
             // skip comment lines
-            if (line.startsWith("#"))
-                continue;
-            lines.add(line);
+            if( !line.startsWith("#") ) {
+                lines.add(line);
+            }
         }
         reader.close();
 
@@ -122,13 +114,23 @@ public class PreProcessor {
                 }
             } else {
                 rec.setStatus("live");
+
+                // example: "DISCS LARGE, DROSOPHILA, HOMOLOG OF, 3; DLG3"
+                //  we want only first part, up to first "; "
+                int semiPos = preferredTitle.indexOf("; ");
+                if( semiPos>0 ) {
+                    preferredTitle = preferredTitle.substring(0, semiPos);
+                }
+                rec.setPreferredTitle(preferredTitle);
+
+                if( rec.getType().contains("phenotype") ) {
+                    rec.setPhenotype(rec.getPreferredTitle());
+                }
             }
         }
     }
 
-    List<OmimRecord> processMim2Gene_(String fileName) throws Exception {
-
-        List<OmimRecord> results = new ArrayList<>();
+    void processGeneMap2(String fileName, Map<String, OmimRecord> recordMap) throws Exception {
 
         // this is a text file, tab separated
         List<String> lines = loadFile(fileName);
@@ -137,27 +139,73 @@ public class PreProcessor {
             // split line into words
             String[] words = line.split("[\t]", -1);
 
-            // the full data is for gene records
-            OmimRecord rec = new OmimRecord();
-            rec.setMimNumber(words[0]);
-            rec.setType(words[1]);
+            String chr = words[0]; // 'chr1'
+            int startPos = Integer.parseInt(words[1]);
+            int stopPos = Integer.parseInt(words[2]);
+            String geneSymbols = words[6]; // f.e. RBMY1A1, RBM1, YRRM1, RBM2
+            String omimId = words[5]; // MIM Number for Gene/Locus (OMIM)
 
-            if( words.length>=4 ) {
-                rec.setGeneId(words[2]);
-                rec.setGeneSymbol(words[3]);
-            }
-            if( words.length>=5 ) {
-                rec.setEnsemblGeneId(words[4]);
-            }
-
-            getGeneInfoFromOmimApi(rec);
-
-            results.add(rec);
+            OmimRecord rec = recordMap.get(omimId);
+            rec.setChr(chr.substring(3)); // remove prefix 'chr'
+            rec.setStartPos(startPos);
+            rec.setStopPos(stopPos);
+            rec.setGeneSymbols(geneSymbols);
         }
-
-        return results;
     }
 
+    void processMorbidMap(String fileName, Map<String, OmimRecord> recordMap) throws Exception {
+
+        // this is a text file, tab separated
+        List<String> lines = loadFile(fileName);
+        for( String line: lines ) {
+
+            // split line into words
+            String[] words = line.split("[\t]", -1);
+
+            String phenotypeStr = words[0]; //
+            String omimId = words[2]; // MIM Number for Gene/Locus (OMIM)
+            String phenotype = null;
+
+            // parse out phenotype mim id
+            String phenotypeMimId = null;
+            // example: '46XX sex reversal 1, 400045 (4)'
+            //
+            // strip out phenotype mapping key
+            int lastParenthesisPos = phenotypeStr.lastIndexOf(" (");
+            if( lastParenthesisPos <=0 ) {
+                throw new Exception("was expecting phenotype mapping key! "+phenotypeStr);
+            }
+            String phenotype2 = phenotypeStr.substring(0, lastParenthesisPos);
+            // if available, phenotype MIM id will be in format ', xxxxxx', f.e. ', 617321'
+            if( phenotype2.length()> 8 ) {
+                String tmp = phenotype2.substring(phenotype2.length() - 8);
+                boolean isValidMimId = tmp.matches(", \\d{6}");
+                if( isValidMimId ) {
+                    phenotypeMimId = tmp.substring(2, 2+6);
+                    phenotype = phenotype2.substring(0, phenotype2.length()-8);
+                } else {
+                    phenotype = phenotype2;
+                }
+            } else {
+                phenotype = phenotype2;
+            }
+
+            // if phenotypeMimId is not give, set it to gene mim id
+            if( phenotypeMimId==null ) {
+                phenotypeMimId = omimId;
+            }
+
+
+            OmimRecord rec = recordMap.get(omimId);
+            rec.setPhenotype(phenotype);
+            rec.getPhenotypeMimNumbers().add( Integer.parseInt(phenotypeMimId) );
+
+            rec = recordMap.get(phenotypeMimId);
+            rec.setPhenotype(phenotype);
+        }
+    }
+
+/*
     void getGeneInfoFromOmimApi(OmimRecord rec) throws Exception {
 
         AtomicInteger retryCount = new AtomicInteger(0);
@@ -231,65 +279,7 @@ public class PreProcessor {
             }
         }
     }
-
-    JSONObject getJsonContent(String mimNumber, AtomicInteger retryCount) throws Exception {
-
-        String jsonFileName = "data/json/" + mimNumber + ".json";
-        File f = new File(jsonFileName);
-        if (f.exists()) {
-            // file on disk cannot be older than specified number of days
-            long fileLastModifiedTime = f.lastModified();
-
-            // file cutoff date (30 days before the current time)
-            long cutoffDate = System.currentTimeMillis() - getJsonFileCacheLifeInDays()*24*60*60*1000l;
-
-            if( fileLastModifiedTime<cutoffDate ) {
-                f.delete();
-            }
-        }
-
-        if (!f.exists()) {
-
-            String omimApiUrl = getOmimApiUrl().replace("{{APIKEY}}", apiKey);
-
-            FileDownloader fd = new FileDownloader();
-            fd.setExternalFile(omimApiUrl + mimNumber);
-            fd.setLocalFile(jsonFileName);
-            fd.download();
-
-            Thread.sleep(getOmimApiDownloadSleepTimeInMS());
-        }
-
-        String jsonContent = Utils.readFileAsString(jsonFileName);
-
-        JSONParser parser = new JSONParser();
-        JSONObject jsonTree = null;
-        try {
-            jsonTree = (JSONObject) parser.parse(jsonContent);
-        } catch( Exception e ) {
-            System.out.println("WARN: problem parsing file for OMIM:"+mimNumber);
-
-            if( f.exists() ) {
-
-                final int maxRetryCount = 5;
-                int thisRetryCount = retryCount.incrementAndGet();
-                if( thisRetryCount<maxRetryCount ) {
-
-                    // delete the file and retry
-                    f.delete();
-                    System.out.println("File "+jsonFileName+" deleted. Retrying...");
-
-                    return getJsonContent(mimNumber, retryCount);
-                } else {
-                    //exceeded maximum retry count
-                    throw new RuntimeException("ERROR: problem with downloading the file "+jsonFileName+" -- reached maximum number of download retries == 5 -- aborting the pipeline");
-                }
-            }
-        }
-
-        return jsonTree;
-    }
-
+*/
     /**
      * download mim2gene.txt file, save it to a local directory
      * @return the name of the local copy of the file
@@ -337,38 +327,6 @@ public class PreProcessor {
 
     public void setMorbidmapFile(String morbidmapFile) {
         this.morbidmapFile = morbidmapFile;
-    }
-
-    public void setOmimApiUrl(String omimApiUrl) {
-        this.omimApiUrl = omimApiUrl;
-    }
-
-    public String getOmimApiUrl() {
-        return omimApiUrl;
-    }
-
-    public OmimPS getOmimPSMap() {
-        return omimPSMap;
-    }
-
-    public void setOmimPSMap(OmimPS omimPSMap) {
-        this.omimPSMap = omimPSMap;
-    }
-
-    public void setOmimApiDownloadSleepTimeInMS(int omimApiDownloadSleepTimeInMS) {
-        this.omimApiDownloadSleepTimeInMS = omimApiDownloadSleepTimeInMS;
-    }
-
-    public int getOmimApiDownloadSleepTimeInMS() {
-        return omimApiDownloadSleepTimeInMS;
-    }
-
-    public void setJsonFileCacheLifeInDays(int jsonFileCacheLifeInDays) {
-        this.jsonFileCacheLifeInDays = jsonFileCacheLifeInDays;
-    }
-
-    public int getJsonFileCacheLifeInDays() {
-        return jsonFileCacheLifeInDays;
     }
 
     public void setApiKeyFile(String apiKeyFile) {

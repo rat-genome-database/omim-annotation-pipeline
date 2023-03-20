@@ -32,6 +32,12 @@ public class QCProcessor {
 
     public void qc(OmimRecord rec) throws Exception {
 
+        // process only OMIM records of type gene: skip phenotypes nad predominantly phenotypes
+        if( !rec.getType().equals("gene") ) {
+            counters.increment("MATCH_NO_GENE");
+            return;
+        }
+
         qcStatus(rec);
 
         // first match to rgd gene by NCBI gene id
@@ -72,9 +78,9 @@ public class QCProcessor {
 
     void processGeneLocus(OmimRecord rec) throws Exception {
 
-        if( rec.chr!=null && rec.startPos>0 && rec.stopPos>rec.startPos ) {
+        if( rec.getChr()!=null && rec.getStartPos()>0 && rec.getStopPos()>rec.getStartPos() ) {
             GeneDAO gdao = new GeneDAO();
-            List<Gene> genesInLocus = gdao.getGenesByPosition(rec.chr, rec.startPos, rec.stopPos, humanMapKey);
+            List<Gene> genesInLocus = gdao.getGenesByPosition(rec.getChr(), rec.getStartPos(), rec.getStopPos(), humanMapKey);
 
             // if there no RGD genes, use the ones from gene position
             if( rec.getRgdGenes().isEmpty() ) {
@@ -88,13 +94,13 @@ public class QCProcessor {
 
     void processAlternateGeneSymbols(OmimRecord rec) throws Exception {
 
-        if( Utils.isStringEmpty(rec.geneSymbols) ) {
+        if( Utils.isStringEmpty(rec.getGeneSymbols()) ) {
             return;
         }
 
         Set<Gene> genesBySymbol = new HashSet<>();
 
-        String[] geneSymbols = rec.geneSymbols.split("[\\,\\s]+");
+        String[] geneSymbols = rec.getGeneSymbols().split("[\\,\\s]+");
         for( String geneSymbol: geneSymbols ) {
             List<Gene> genes = getDao().getGenesBySymbol(geneSymbol);
             if( genes.isEmpty() ) {
@@ -125,7 +131,7 @@ public class QCProcessor {
             rec.setFlag("MATCH_MULTIPLE_GENES");
             counters.increment("MATCH_MULTIPLE_GENES");
 
-            String msg = "OMIM:"+rec.mimId+" matches multiple genes\n";
+            String msg = "OMIM:"+rec.getMimId()+" matches multiple genes\n";
             for( Gene gene: rec.getRgdGenes() ) {
                 msg += "RGD_ID:"+gene.getRgdId()+"|SYMBOL:"+gene.getSymbol()+"\n";
             }
@@ -142,9 +148,11 @@ public class QCProcessor {
 
             qcOmimId(gene.getRgdId(), rec.getMimNumber(), rec);
 
-            for( Integer phenotypeOmimId: rec.phenotypeMimNumbers ) {
+            /*
+            for( Integer phenotypeOmimId: rec.getPhenotypeMimNumbers() ) {
                 qcOmimId(gene.getRgdId(), phenotypeOmimId.toString(), rec);
             }
+            */
         }
     }
 

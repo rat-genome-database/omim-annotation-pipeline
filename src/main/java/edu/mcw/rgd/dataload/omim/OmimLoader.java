@@ -18,7 +18,7 @@ public class OmimLoader {
 
     void run(Logger log) throws Exception {
 
-        Date yesterday = Utils.addDaysToDate(new Date(), -1);
+        Date yesterday = Utils.addMinutesToDate(new Date(), -5);
 
         CounterPool counters = new CounterPool();
 
@@ -26,8 +26,8 @@ public class OmimLoader {
         qcProcessor.init(dao, counters);
         log.info("   "+dao.getConnectionInfo());
 
-        OmimPS omimPSMap = new OmimPS();
-        preProcessor.setOmimPSMap(omimPSMap);
+        //OmimPS omimPSMap = new OmimPS();
+        //preProcessor.setOmimPSMap(omimPSMap);
 
         log.info(getVersion());
 
@@ -44,7 +44,7 @@ public class OmimLoader {
         });
 
         // QC OMIM PS map
-        omimPSMap.qc(dao, counters);
+        //omimPSMap.qc(dao, counters);
 
         // delete stale annotations
         List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(yesterday);
@@ -54,7 +54,7 @@ public class OmimLoader {
         // dump counter statistics
         log.info(counters.dumpAlphabetically());
 
-        omimPSMap.dumpPSIdsNotInRgd(dao, log);
+        //omimPSMap.dumpPSIdsNotInRgd(dao, log);
     }
 
     public void load(OmimRecord rec, OmimDAO dao, CounterPool counters) throws Exception {

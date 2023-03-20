@@ -16,21 +16,21 @@ import java.util.Set;
 public class OmimRecord {
 
     // incoming data from mim2gene file
-    String mimId;
-    String type;
-    String phenotype;
-    String geneId; // NCBI gene id
-    String geneSymbol;
-    String ensemblGeneId;
+    private String mimId;
+    private String type;
+    private String phenotype;
+    private String geneId; // NCBI gene id
+    private String geneSymbol;
+    private String ensemblGeneId;
 
     // incoming data from OMIM API query
-    String status; // 'live', etc
-    String preferredTitle;
-    String geneSymbols;
-    String chr;
-    int startPos;
-    int stopPos;
-    Set<Integer> phenotypeMimNumbers = new HashSet<>();
+    private String status; // 'live', etc
+    private String preferredTitle;
+    private String geneSymbols;
+    private String chr;
+    private int startPos;
+    private int stopPos;
+    private Set<Integer> phenotypeMimNumbers = new HashSet<>();
 
     // matching genes in rgd
     private Set<Gene> rgdGenes = new HashSet<>();
@@ -126,5 +126,73 @@ public class OmimRecord {
 
     public void setFlag(String flag) {
         flags.add(flag);
+    }
+
+    public String getMimId() {
+        return mimId;
+    }
+
+    public void setMimId(String mimId) {
+        this.mimId = mimId;
+    }
+
+    public String getPreferredTitle() {
+        return preferredTitle;
+    }
+
+    public void setPreferredTitle(String preferredTitle) {
+        this.preferredTitle = preferredTitle;
+    }
+
+    public String getGeneSymbols() {
+        return geneSymbols;
+    }
+
+    public void setGeneSymbols(String geneSymbols) {
+        this.geneSymbols = geneSymbols;
+    }
+
+    public String getChr() {
+        return chr;
+    }
+
+    public void setChr(String chr) {
+        this.chr = chr;
+    }
+
+    public int getStartPos() {
+        return startPos;
+    }
+
+    public void setStartPos(int startPos) {
+        this.startPos = startPos;
+    }
+
+    public int getStopPos() {
+        return stopPos;
+    }
+
+    public void setStopPos(int stopPos) {
+        this.stopPos = stopPos;
+    }
+
+    public Set<Integer> getPhenotypeMimNumbers() {
+        return phenotypeMimNumbers;
+    }
+
+    public void setPhenotypeMimNumbers(Set<Integer> phenotypeMimNumbers) {
+        this.phenotypeMimNumbers = phenotypeMimNumbers;
+    }
+
+    public void setRgdGenes(Set<Gene> rgdGenes) {
+        this.rgdGenes = rgdGenes;
+    }
+
+    public Set<String> getFlags() {
+        return flags;
+    }
+
+    public void setFlags(Set<String> flags) {
+        this.flags = flags;
     }
 }
