@@ -26,9 +26,6 @@ public class OmimLoader {
         qcProcessor.init(dao, counters);
         log.info("   "+dao.getConnectionInfo());
 
-        //OmimPS omimPSMap = new OmimPS();
-        //preProcessor.setOmimPSMap(omimPSMap);
-
         log.info(getVersion());
 
         List<OmimRecord> incomingData = preProcessor.downloadAndParseOmimData();
@@ -43,9 +40,6 @@ public class OmimLoader {
             }
         });
 
-        // QC OMIM PS map
-        //omimPSMap.qc(dao, counters);
-
         // delete stale annotations
         List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(yesterday);
         dao.deleteOmims(staleOmimIds);
@@ -53,8 +47,6 @@ public class OmimLoader {
 
         // dump counter statistics
         log.info(counters.dumpAlphabetically());
-
-        //omimPSMap.dumpPSIdsNotInRgd(dao, log);
     }
 
     public void load(OmimRecord rec, OmimDAO dao, CounterPool counters) throws Exception {

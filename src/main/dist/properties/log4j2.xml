@@ -49,6 +49,12 @@
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
         </RollingFile>
+        <RollingFile name="omim_ps_summary" append="false" fileName="logs/omim_ps_summary.log" filePattern="logs/omim_ps_summary.log.%d{yyyy-MM}">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
         <RollingFile name="multis" append="true" fileName="logs/multis.log" filePattern="logs/multis.log.%d{yyyy-MM}">
             <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] - %m%n"/>
             <Policies>
@@ -99,6 +105,7 @@
         </Logger>
         <Logger name="omim_ps" level="debug" additivity="false">
             <AppenderRef ref="omim_ps"/>
+            <AppenderRef ref="omim_ps_summary" level="info"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
         <Logger name="multis" level="debug" additivity="false">

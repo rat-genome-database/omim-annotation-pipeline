@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline   -- build Jan 13, 2023"/>
+        <property name="version" value="OmimPipeline   -- build Mar 24, 2023"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
@@ -17,12 +17,6 @@
         <property name="mimTitlesFile" value="https://data.omim.org/downloads/{{APIKEY}}/mimTitles.txt"/>
         <property name="genemap2File" value="https://data.omim.org/downloads/{{APIKEY}}/genemap2.txt"/>
         <property name="morbidmapFile" value="https://data.omim.org/downloads/{{APIKEY}}/morbidmap.txt"/>
-
-        <!-- obsolete as of 2023
-        <property name="omimApiUrl" value="https://api.omim.org/api/entry?include=geneMap&amp;apiKey={{APIKEY}}&amp;format=json&amp;mimNumber="/>
-        <property name="omimApiDownloadSleepTimeInMS" value="777"/>
-        <property name="jsonFileCacheLifeInDays" value="20"/>
-        -->
 	</bean>
 
     <bean id="qcProcessor" class="edu.mcw.rgd.dataload.omim.QCProcessor">
@@ -36,5 +30,9 @@
         <property name="deleteThresholdForStaleAnnotations" value="5%"/>
         <property name="evidenceCode" value="IAGP"/><!-- evidence code for primary annotations -->
         <property name="evidenceCodeForOrtho" value="ISO"/><!-- evidence code for ortholog annotations -->
+    </bean>
+
+    <bean id="omimPS" class="edu.mcw.rgd.dataload.omim.OmimPS">
+        <property name="psFile" value="https://data.omim.org/downloads/{{APIKEY}}/phenotypicSeries.txt"/>
     </bean>
 </beans>

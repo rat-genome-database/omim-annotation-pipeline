@@ -1,4 +1,5 @@
-TODO: load phenotypic series
+Mar 23, 2023
+  added loading of phenotypic series
 
 Mar 20, 2023
   fully finished transition to use 'mimTitles','mim2gene' and 'morbidmap' files instead of API

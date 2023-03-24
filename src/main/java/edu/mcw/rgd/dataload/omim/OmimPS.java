@@ -2,9 +2,12 @@ package edu.mcw.rgd.dataload.omim;
 
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.process.CounterPool;
+import edu.mcw.rgd.process.FileDownloader;
+import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.util.*;
 
 /**
@@ -14,11 +17,50 @@ import java.util.*;
  */
 public class OmimPS {
 
+    private String psFile;
+
     protected final Logger log = LogManager.getLogger("omim_ps");
 
     // internally we store PS mappings as map:
     // 'PSid|MIMid' -> 'key'
     private Set<String> incoming = new HashSet<>();
+
+    public void loadAll(String apiKey) throws Exception {
+
+        FileDownloader fd = new FileDownloader();
+        fd.setExternalFile(getPsFile().replace("{{APIKEY}}", apiKey));
+        fd.setLocalFile("data/phenotypicSeries.tsv");
+        fd.setUseCompression(true);
+        fd.setPrependDateStamp(true);
+        String fileName = fd.downloadNew();
+        BufferedReader in = Utils.openReader(fileName);
+
+        String line;
+        while( (line=in.readLine())!=null ) {
+            // sample line to parse and load
+            // # Phenotypic Series Number TAB MIM Number TAB Phenotype
+            // PS100070 TAB 609782 TAB Aortic aneurysm, familial abdominal 2
+            String[] words = line.split("[\\t]");
+            if( words.length!=3 ) {
+                continue;
+            }
+            String psId = words[0];
+            String omimId = words[1];
+            if( psId.matches("PS\\d{6}") || omimId.matches("\\d{6}")) {
+                addMapping(psId, "OMIM:"+omimId);
+            }
+        }
+        in.close();
+
+        CounterPool counters = new CounterPool();
+        counters.add("PHENOTYPIC_SERIES_ENTRIES_INCOMING", incoming.size());
+
+        OmimDAO dao = new OmimDAO();
+        qc(dao, counters);
+        log.info(counters.dumpAlphabetically());
+
+        dumpPSIdsNotInRgd(dao, log);
+    }
 
     // return nr of new mappings added
     public int addMapping( String psIds, String phenotypeMimNumber ) {
@@ -77,5 +119,13 @@ public class OmimPS {
                 log.info("   "+psIdNotInRgd);
             }
         }
+    }
+
+    public void setPsFile(String psFile) {
+        this.psFile = psFile;
+    }
+
+    public String getPsFile() {
+        return psFile;
     }
 }
