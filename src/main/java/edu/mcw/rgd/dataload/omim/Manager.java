@@ -55,7 +55,7 @@ public class Manager {
                 OmimPS omimPS = (OmimPS) (bf.getBean("omimPS"));
 
                 PreProcessor preProcessor = (PreProcessor) (bf.getBean("preProcessor"));
-                String apiKey = Utils.readFileAsString(preProcessor.getApiKeyFile());
+                String apiKey = Utils.readFileAsString(preProcessor.getApiKeyFile()).trim();
                 omimPS.loadAll(apiKey);
 
             } else {
