@@ -1,3 +1,7 @@
+May 05, 2023
+  loader: implemented loading of OMIM_GENE2PHENOTYPE table
+  annotator: fixed (to use OMIM_GENE2PHENOTYPE table)
+
 Mar 23, 2023
   added loading of phenotypic series
 

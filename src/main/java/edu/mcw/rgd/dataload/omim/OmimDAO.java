@@ -4,6 +4,7 @@ import edu.mcw.rgd.dao.impl.AnnotationDAO;
 import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.dao.impl.OntologyXDAO;
 import edu.mcw.rgd.dao.impl.XdbIdDAO;
+import edu.mcw.rgd.dao.spring.IntListQuery;
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.Omim;
@@ -29,8 +30,8 @@ public class OmimDAO {
 
     protected final Logger logDeleted = LogManager.getLogger("omim_deleted");
     protected final Logger logInserted = LogManager.getLogger("omim_inserted");
-    protected final Logger logAnnotsDeleted = LogManager.getLogger("annots_inserted");
-    protected final Logger logAnnotsInserted = LogManager.getLogger("annots_deleted");
+    protected final Logger logAnnotsDeleted = LogManager.getLogger("annots_deleted");
+    protected final Logger logAnnotsInserted = LogManager.getLogger("annots_inserted");
 
     AnnotationDAO annotationDAO = new AnnotationDAO();
     GeneDAO geneDAO = new GeneDAO();
@@ -53,11 +54,7 @@ public class OmimDAO {
         // get genes by NCBI gene id
         List<Gene> genes = xdbIdDAO.getActiveGenesByXdbId(XdbId.XDB_KEY_NCBI_GENE, geneId);
         // filter out non-human genes
-        ListIterator<Gene> it = genes.listIterator();
-        while( it.hasNext() ) {
-            if( it.next().getSpeciesTypeKey()!=SpeciesType.HUMAN )
-                it.remove();
-        }
+        genes.removeIf(gene -> gene.getSpeciesTypeKey() != SpeciesType.HUMAN);
         return genes;
     }
 
@@ -314,5 +311,25 @@ public class OmimDAO {
 
     public String getOmimPhenotype(String mimNumber) throws Exception {
         return  omimDAO.getOmimPhenotype(mimNumber);
+    }
+
+    public List<Integer> getOmimGenesForOmimPhenotype(int phenotypeMimNumber) throws Exception {
+        String sql = "SELECT DISTINCT gene_mim_number FROM omim_gene2phenotype WHERE phenotype_mim_number=?";
+        return IntListQuery.execute(omimDAO, sql, phenotypeMimNumber);
+    }
+
+    public int updateGene2Phenotype(int geneMimNumber, int phenotypeMimNumber) throws Exception {
+        String sql = "UPDATE omim_gene2phenotype SET last_modified_date=SYSDATE WHERE gene_mim_number=? AND phenotype_mim_number=?";
+        return omimDAO.update(sql, geneMimNumber, phenotypeMimNumber);
+    }
+
+    public int insertGene2Phenotype(int geneMimNumber, int phenotypeMimNumber) throws Exception {
+        String sql = "INSERT INTO omim_gene2phenotype (gene_mim_number,phenotype_mim_number,created_date,last_modified_date) VALUES(?,?,SYSDATE,SYSDATE)";
+        return omimDAO.update(sql, geneMimNumber, phenotypeMimNumber);
+    }
+
+    public int deleteObsoleteGene2PhenotypeData(Date cutoffDate) throws Exception {
+        String sql = "DELETE FROM omim_gene2phenotype WHERE last_modified_date<?";
+        return omimDAO.update(sql, cutoffDate);
     }
 }

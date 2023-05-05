@@ -81,10 +81,17 @@ public class AnnotationLoader {
                 // skip any zeroes
                 try {
                     int omimId = Integer.parseInt(syn.getName().substring(5).trim());
-                    if( rec.omimIds==null ) {
-                        rec.omimIds = new HashSet<>();
+
+                    // convert OMIM phenotypic ids into OMIM gene ids
+                    List<Integer> omimGeneIds = dao.getOmimGenesForOmimPhenotype(omimId);
+                    if( !omimGeneIds.isEmpty() ) {
+                        if (rec.omimGeneIds == null) {
+                            rec.omimGeneIds = new HashSet<>();
+                        }
+                        for( Integer omimGeneId: omimGeneIds ) {
+                            rec.omimGeneIds.add(Integer.toString(omimGeneId));
+                        }
                     }
-                    rec.omimIds.add(Integer.toString(omimId));
                 } catch(NumberFormatException e) {
                     log.warn("*** WARN: INVALID OMIM ID: "+syn.getName()+" for "+rec.term.getAccId());
                 }
@@ -93,19 +100,19 @@ public class AnnotationLoader {
     }
 
     void createAnnotations(OmimAnnotRecord rec) throws Exception {
-        if( rec.omimIds ==null )
+        if( rec.omimGeneIds ==null )
             return;
         rec.annots = new ArrayList<>();
 
-        for( String omimId: rec.omimIds ) {
+        for( String omimGeneId: rec.omimGeneIds ) {
 
-            String phenotype = Utils.defaultString(dao.getOmimPhenotype(omimId)).toLowerCase();
+            String phenotype = Utils.defaultString(dao.getOmimPhenotype(omimGeneId)).toLowerCase();
             String qualifier = null;
             if( phenotype.contains("susceptibility") ) {
                 qualifier = "susceptibility";
             }
 
-            for( XdbId xdbId: dao.getXdbIdsForOmimId(omimId) ) {
+            for( XdbId xdbId: dao.getXdbIdsForOmimId(omimGeneId) ) {
 
                 Annotation ann = new Annotation();
                 ann.setAnnotatedObjectRgdId(xdbId.getRgdId());
@@ -270,7 +277,7 @@ public class AnnotationLoader {
     class OmimAnnotRecord {
 
         Term term;
-        Set<String> omimIds; // OMIM ids associated with the term
+        Set<String> omimGeneIds; // OMIM ids associated with the term
         List<Annotation> annots;
         List<Annotation> annotsForInsert;
         List<Annotation> annotsForUpdate;

@@ -147,12 +147,6 @@ public class QCProcessor {
         for( Gene gene: rec.getRgdGenes() ) {
 
             qcOmimId(gene.getRgdId(), rec.getMimNumber(), rec);
-
-            /*
-            for( Integer phenotypeOmimId: rec.getPhenotypeMimNumbers() ) {
-                qcOmimId(gene.getRgdId(), phenotypeOmimId.toString(), rec);
-            }
-            */
         }
     }
 

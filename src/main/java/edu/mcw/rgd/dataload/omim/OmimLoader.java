@@ -18,7 +18,7 @@ public class OmimLoader {
 
     void run(Logger log) throws Exception {
 
-        Date yesterday = Utils.addMinutesToDate(new Date(), -5);
+        Date cutoffDate = Utils.addMinutesToDate(new Date(), -5);
 
         CounterPool counters = new CounterPool();
 
@@ -41,9 +41,13 @@ public class OmimLoader {
         });
 
         // delete stale annotations
-        List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(yesterday);
+        List<XdbId> staleOmimIds = dao.getOmimIdsModifiedBefore(cutoffDate);
         dao.deleteOmims(staleOmimIds);
         counters.add("OMIM_DELETED", staleOmimIds.size());
+
+        // delete obsolete rows from OMIM_gene2phenotype table
+        int obsoleteGene2PhenotypeRows = dao.deleteObsoleteGene2PhenotypeData(cutoffDate);
+        counters.add("OMIM_GENE2PHENOTYPE_DELETED", Math.abs(obsoleteGene2PhenotypeRows));
 
         // dump counter statistics
         log.info(counters.dumpAlphabetically());
@@ -69,6 +73,18 @@ public class OmimLoader {
         }
 
         updateOmimTable(rec, dao, counters);
+
+        // update OMIM_gene2phenotype table
+        for( int omimPhenotypeNr: rec.getPhenotypeMimNumbers() ) {
+            int geneMimNr = Integer.parseInt(rec.getMimNumber());
+            int updated = dao.updateGene2Phenotype(geneMimNr, omimPhenotypeNr);
+            if( updated!=0 ) {
+                counters.increment("OMIM_GENE2PHENOTYPE_UP_TO_DATE");
+            } else {
+                dao.insertGene2Phenotype(geneMimNr, omimPhenotypeNr);
+                counters.increment("OMIM_GENE2PHENOTYPE_INSERTED");
+            }
+        }
     }
 
     void updateOmimTable( OmimRecord rec, OmimDAO dao, CounterPool counters ) throws Exception {
