@@ -1,5 +1,6 @@
 Jun 19, 2024
   added loading of phenotypic series
+  phenotypic series: aborts when there is no data in incoming data file
 
 May 05, 2023
   loader: implemented loading of OMIM_GENE2PHENOTYPE table

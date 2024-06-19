@@ -52,6 +52,10 @@ public class OmimPS {
         }
         in.close();
 
+        if( incoming.isEmpty() ) {
+            throw new Exception("*** the incoming file "+fileName+" has no PS entries!");
+        }
+
         CounterPool counters = new CounterPool();
         counters.add("PHENOTYPIC_SERIES_ENTRIES_INCOMING", incoming.size());
 
