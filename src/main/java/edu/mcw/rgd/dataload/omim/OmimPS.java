@@ -47,7 +47,7 @@ public class OmimPS {
             String psId = words[0];
             String omimId = words[1];
             if( psId.matches("PS\\d{6}") || omimId.matches("\\d{6}")) {
-                addMapping(psId, "OMIM:"+omimId);
+                addMapping(psId, "MIM:"+omimId);
             }
         }
         in.close();
@@ -68,7 +68,7 @@ public class OmimPS {
 
         // split PS is into multiple types
         for( String psId: psIds.split("[\\,]") ) {
-            String mapping = "OMIM:"+psId + "|" + phenotypeMimNumber;
+            String mapping = "MIM:"+psId + "|" + phenotypeMimNumber;
             if( incoming.add(mapping) ) {
                 addedMappings++;
             }
@@ -114,7 +114,7 @@ public class OmimPS {
         List<String> psIdsNotInRgd = dao.getPhenotypicSeriesIdsNotInRgd();
         if( !psIdsNotInRgd.isEmpty() ) {
             log.info("===");
-            log.info("OMIM PS ids not in RGD (yet): "+psIdsNotInRgd.size());
+            log.info("MIM PS ids not in RGD (yet): "+psIdsNotInRgd.size());
             for( String psIdNotInRgd: psIdsNotInRgd ) {
                 log.info("   "+psIdNotInRgd);
             }

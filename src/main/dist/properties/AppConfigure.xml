@@ -1,11 +1,11 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.dataload.omim.Manager">
-        <property name="version" value="OmimPipeline   -- build May 05, 2023"/>
+        <property name="version" value="OmimPipeline   -- build Jun 19, 2024"/>
     </bean>
 
     <bean id="omimLoader" class="edu.mcw.rgd.dataload.omim.OmimLoader">
-        <property name="version" value="OmimIdPipeline   -- build May 05, 2023"/>
+        <property name="version" value="OmimIdPipeline   -- build Jun 19, 2024"/>
         <property name="preProcessor" ref="preProcessor"/>
         <property name="qcProcessor" ref="qcProcessor"/>
     </bean>
@@ -23,7 +23,7 @@
     </bean>
 
     <bean id="annotationLoader" class="edu.mcw.rgd.dataload.omim.AnnotationLoader">
-        <property name="version" value="OmimAnnotationPipeline   -- build May 05, 2023"/>
+        <property name="version" value="OmimAnnotationPipeline   -- build Jun 19, 2024"/>
         <property name="createdBy" value="192"/>
         <property name="refRgdId" value="7240710"/>
         <property name="dataSource" value="OMIM"/>

@@ -32,7 +32,7 @@ public class QCProcessor {
 
     public void qc(OmimRecord rec) throws Exception {
 
-        // process only OMIM records of type gene: skip phenotypes nad predominantly phenotypes
+        // process only MIM records of type gene: skip phenotypes and predominantly phenotypes
         if( !rec.getType().equals("gene") ) {
             counters.increment("MATCH_NO_GENE");
             return;
@@ -65,10 +65,10 @@ public class QCProcessor {
         counters.increment("OMIM_STATUS_"+rec.getStatus().toUpperCase());
 
         if( !rec.getStatus().equals("live") ) {
-            // OMIM id is inactive -- see if there are any OMIM ids in RGD
+            // MIM id is inactive -- see if there are any MIM ids in RGD
             List<Term> terms = dao.getRdoTermsBySynonym(rec.getMimNumber());
             if( !terms.isEmpty() ) {
-                counters.increment("INACTIVE_OMIM_IDS_IN_RGD");
+                counters.increment("INACTIVE_MIM_IDS_IN_RGD");
                 for( Term term: terms ) {
                     logInactive.info(rec.getMimNumber()+" in term "+term.getAccId()+" ["+term.getTerm()+"]");
                 }
@@ -131,7 +131,7 @@ public class QCProcessor {
             rec.setFlag("MATCH_MULTIPLE_GENES");
             counters.increment("MATCH_MULTIPLE_GENES");
 
-            String msg = "OMIM:"+rec.getMimId()+" matches multiple genes\n";
+            String msg = "MIM:"+rec.getMimId()+" matches multiple genes\n";
             for( Gene gene: rec.getRgdGenes() ) {
                 msg += "RGD_ID:"+gene.getRgdId()+"|SYMBOL:"+gene.getSymbol()+"\n";
             }

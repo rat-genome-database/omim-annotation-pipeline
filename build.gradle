@@ -9,9 +9,10 @@ tasks.whenTaskAdded { task ->
 apply plugin: 'java'
 apply plugin: 'application'
 
-// JDK 8
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    sourceCompatibility = 17
+    targetCompatibility = 17
+}
 mainClassName = 'edu.mcw.rgd.dataload.omim.Manager'
 String myAppName = 'omim-pipeline'
 
@@ -22,14 +23,12 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.apache.commons:commons-dbcp2:2.9.0'
-    implementation 'commons-net:commons-net:3.9.0'
+    implementation 'org.apache.commons:commons-dbcp2:2.10.0'
+    implementation 'commons-net:commons-net:3.10.0'
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
-    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
-    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
-    implementation 'com.oracle.database.jdbc:ojdbc8:21.6.0.0'
-    implementation 'org.springframework:spring-beans:5.3.2'
-    implementation 'org.springframework:spring-jdbc:5.3.2'
+    implementation 'org.apache.logging.log4j:log4j-core:2.21.0'
+    implementation 'com.oracle.database.jdbc:ojdbc10:19.23.0.0'
+    implementation 'org.springframework:spring-jdbc:6.1.3'
 
     implementation fileTree(dir: 'lib', include: '*.jar')
 }

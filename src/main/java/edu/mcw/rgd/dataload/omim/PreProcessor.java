@@ -141,7 +141,7 @@ public class PreProcessor {
 
             String chr = words[0]; // 'chr1'
             String geneSymbols = words[6]; // f.e. RBMY1A1, RBM1, YRRM1, RBM2
-            String omimId = words[5]; // MIM Number for Gene/Locus (OMIM)
+            String omimId = words[5]; // MIM Number for Gene/Locus
 
             int startPos = 0;
             int stopPos = 0;
@@ -171,7 +171,7 @@ public class PreProcessor {
             String[] words = line.split("[\\t]", -1);
 
             String phenotypeStr = words[0]; //
-            String omimId = words[2]; // MIM Number for Gene/Locus (OMIM)
+            String omimId = words[2]; // MIM Number for Gene/Locus
             String phenotype = null;
 
             // parse out phenotype mim id

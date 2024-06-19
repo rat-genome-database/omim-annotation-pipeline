@@ -1,4 +1,4 @@
-# OMIM annotation pipeline: generate annotations for RDO terms having OMIM ids
+# OMIM annotation pipeline: generate annotations for RDO terms with MIM ids
 #
 . /etc/profile
 SERVER=`hostname -s | tr '[a-z]' '[A-Z]'`

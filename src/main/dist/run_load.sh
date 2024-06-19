@@ -1,4 +1,4 @@
-# download OMIM ids from OMIM and update them in RGD
+# download MIM ids from OMIM and update them in RGD
 #
 . /etc/profile
 SERVER=`hostname -s | tr '[a-z]' '[A-Z]'`

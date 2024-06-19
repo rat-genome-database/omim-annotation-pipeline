@@ -33,7 +33,7 @@ public class AnnotationLoader {
 
     public void run(Logger log) throws Exception {
 
-        Date dtStart = Utils.addDaysToDate(new Date(), -1);
+        Date dtStart = Utils.addHoursToDate(new Date(), -1);
 
         this.log = log;
         counters = new CounterPool();
@@ -76,13 +76,13 @@ public class AnnotationLoader {
 
     void findOmimIds(OmimAnnotRecord rec) throws Exception {
         for(TermSynonym syn: dao.getTermSynonyms(rec.term.getAccId()) ) {
-            // skip phenotypic series: OMIM:PSxxxxx
-            if( syn.getName().startsWith("OMIM:") && !syn.getName().startsWith("OMIM:PS")) {
+            // skip phenotypic series: MIM:PSxxxxx
+            if( syn.getName().startsWith("MIM:") && !syn.getName().startsWith("MIM:PS")) {
                 // skip any zeroes
                 try {
-                    int omimId = Integer.parseInt(syn.getName().substring(5).trim());
+                    int omimId = Integer.parseInt(syn.getName().substring(4).trim());
 
-                    // convert OMIM phenotypic ids into OMIM gene ids
+                    // convert MIM phenotypic ids into MIM gene ids
                     List<Integer> omimGeneIds = dao.getOmimGenesForOmimPhenotype(omimId);
                     if( !omimGeneIds.isEmpty() ) {
                         if (rec.omimGeneIds == null) {
@@ -93,7 +93,7 @@ public class AnnotationLoader {
                         }
                     }
                 } catch(NumberFormatException e) {
-                    log.warn("*** WARN: INVALID OMIM ID: "+syn.getName()+" for "+rec.term.getAccId());
+                    log.warn("*** WARN: INVALID MIM ID: "+syn.getName()+" for "+rec.term.getAccId());
                 }
             }
         }
@@ -277,7 +277,7 @@ public class AnnotationLoader {
     class OmimAnnotRecord {
 
         Term term;
-        Set<String> omimGeneIds; // OMIM ids associated with the term
+        Set<String> omimGeneIds; // MIM ids associated with the term
         List<Annotation> annots;
         List<Annotation> annotsForInsert;
         List<Annotation> annotsForUpdate;

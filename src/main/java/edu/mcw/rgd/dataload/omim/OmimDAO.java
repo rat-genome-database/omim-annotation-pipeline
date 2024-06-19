@@ -127,7 +127,7 @@ public class OmimDAO {
     }
 
     /**
-     * insert a bunch of OMIM IDs into rgd
+     * insert a bunch of MIM IDs into rgd
      * @param omims list of XdbId objects to be inserted into rgd
      * @return number of rows actually inserted
      * @throws Exception when unexpected error in spring framework occurs
@@ -141,7 +141,7 @@ public class OmimDAO {
     }
 
     /**
-     * delete a bunch of OMIM IDs from rgd
+     * delete a bunch of MIM IDs from rgd
      * @param omims list of XdbId objects to be removed from rgd
      * @return number of rows actually deleted
      * @throws Exception when unexpected error in spring framework occurs
