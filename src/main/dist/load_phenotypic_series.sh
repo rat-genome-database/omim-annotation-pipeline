@@ -6,7 +6,7 @@ APPHOME=/home/rgddata/pipelines/omim-pipeline
 
 EMAIL_LIST=mtutaj@mcw.edu
 if [ "$SERVER" == "REED" ]; then
-  EMAIL_LIST=rgd.devops@mcw.edu,jrsmith@mcw.edu
+  EMAIL_LIST="rgd.devops@mcw.edu jrsmith@mcw.edu"
 fi
 
 $APPHOME/_run.sh --phenotypic_series

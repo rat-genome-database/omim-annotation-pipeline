@@ -23,7 +23,7 @@ public class OmimPS {
 
     // internally we store PS mappings as map:
     // 'PSid|MIMid' -> 'key'
-    private Set<String> incoming = new HashSet<>();
+    private final Set<String> incoming = new HashSet<>();
 
     public void loadAll(String apiKey) throws Exception {
 

@@ -6,7 +6,7 @@ APPHOME=/home/rgddata/pipelines/omim-pipeline
 
 EMAIL_LIST=mtutaj@mcw.edu
 if [ "$SERVER" == "REED" ]; then
-  EMAIL_LIST=mtutaj@mcw.edu,jrsmith@mcw.edu,slaulederkind@mcw.edu
+  EMAIL_LIST="mtutaj@mcw.edu jrsmith@mcw.edu slaulederkind@mcw.edu"
 fi
 
 $APPHOME/_run.sh -annotations
