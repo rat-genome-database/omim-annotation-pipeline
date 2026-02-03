@@ -67,9 +67,7 @@ public class AnnotationLoader {
 
 
         // at the end delete all obsolete annotations (annotations older than one day)
-        int obsoleteAnnotationsDeleted = dao.deleteObsoleteAnnotations(getCreatedBy(), dtStart,
-                getDeleteThresholdForStaleAnnotations(), getRefRgdId(), getDataSource());
-        counters.add("ANNOTATIONS_DELETED", obsoleteAnnotationsDeleted);
+        dao.deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), getDataSource(), counters);
 
         log.info(counters.dumpAlphabetically());
     }
@@ -152,14 +150,14 @@ public class AnnotationLoader {
 
         // ensure the annotation to be inserted is not a duplicate annotation
         // (duplicate annotations will have the same unique key:
-        // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE
+        // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE+QUALIFIER2+ASSOCIATED_WITH
         if( !isAnnotationDuplicate(ann, annots) ) {
             annots.add(ann);
         }
     }
 
     // unique annotations will have different unique keys:
-    // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE
+    // TERM_ACC+ANNOTATED_OBJECT_RGD_ID+REF_RGD_ID+EVIDENCE+WITH_INFO+QUALIFIER+XREF_SOURCE+QUALIFIER2+ASSOCIATED_WITH
     boolean isAnnotationDuplicate( Annotation ann, List<Annotation> annots ) {
 
         for( Annotation ann2: annots ) {
@@ -177,12 +175,16 @@ public class AnnotationLoader {
                 continue;
             if( !Utils.stringsAreEqual(ann.getXrefSource(), ann2.getXrefSource()) )
                 continue;
+            if( !Utils.stringsAreEqual(ann.getQualifier2(), ann2.getQualifier2()) )
+                continue;
+            if( !Utils.stringsAreEqual(ann.getAssociatedWith(), ann2.getAssociatedWith()) )
+                continue;
 
-            // all seven conditions are satisfied -- new annotation is a duplicate
+            // all nine conditions are satisfied -- new annotation is a duplicate
             return true;
         }
 
-        // no annotations was found to be duplicate
+        // no duplicate annotations found
         return false;
     }
 

@@ -23,7 +23,7 @@
     </bean>
 
     <bean id="annotationLoader" class="edu.mcw.rgd.dataload.omim.AnnotationLoader">
-        <property name="version" value="OmimAnnotationPipeline   -- build Jun 19, 2024"/>
+        <property name="version" value="omim-annotation-pipeline   -- build Feb 03, 2026"/>
         <property name="createdBy" value="192"/>
         <property name="refRgdId" value="7240710"/>
         <property name="dataSource" value="OMIM"/>

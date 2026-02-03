@@ -13,6 +13,7 @@ import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
+import edu.mcw.rgd.process.CounterPool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -226,12 +227,10 @@ public class OmimDAO {
     /**
      * delete all pipeline annotations older than given date
      *
-     * @return count of annotations deleted
      * @throws Exception on spring framework dao failure
      */
-    public int deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId, String dataSource) throws Exception{
-
-        Logger logStatus = LogManager.getLogger("annots");
+    public void deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId,
+                                         String dataSource, CounterPool counters) throws Exception{
 
         // convert delete-threshold string to number; i.e. '5%' --> '5'
         int staleAnnotDeleteThresholdPerc = Integer.parseInt(staleAnnotDeleteThresholdStr.substring(0, staleAnnotDeleteThresholdStr.length()-1));
@@ -241,15 +240,15 @@ public class OmimDAO {
 
         List<Annotation> staleAnnots = annotationDAO.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "D");
 
-        logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
+        counters.add("ANNOTATIONS_COUNT_AT_BEGIN", annotCount);
         if( staleAnnots.size()> 0 ) {
-            logStatus.info("   stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
-            logStatus.info("   stale annotations to be deleted: " + staleAnnots.size());
+            counters.add("ANNOTATIONS_OBSOLETE  delete limit ("+ staleAnnotDeleteThresholdStr + ")",  staleAnnotDeleteLimit);
+            counters.add("ANNOTATIONS_OBSOLETE  to be deleted", staleAnnots.size());
         }
 
         if( staleAnnots.size()> staleAnnotDeleteLimit ) {
-            logStatus.warn("*** DELETE of stale annots aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!");
-            return 0;
+            counters.add("ANNOTATIONS_OBSOLETE   *** DELETE aborted! *** delete threshold exceeded!", staleAnnots.size());
+            return;
         }
 
         List<Integer> staleAnnotKeys = new ArrayList<>();
@@ -257,7 +256,11 @@ public class OmimDAO {
             logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
             staleAnnotKeys.add(ann.getKey());
         }
-        return annotationDAO.deleteAnnotations(staleAnnotKeys);
+        int deleted = annotationDAO.deleteAnnotations(staleAnnotKeys);
+        counters.add("ANNOTATIONS_OBSOLETE_DELETED", deleted);
+
+        int annotCountFinal = annotationDAO.getCountOfAnnotationsByReference(refRgdId, dataSource, "D");
+        counters.add("ANNOTATIONS_COUNT_AT_END", annotCountFinal);
     }
 
     public List<StringMapQuery.MapPair> getPhenotypicSeriesMappings() throws Exception {
