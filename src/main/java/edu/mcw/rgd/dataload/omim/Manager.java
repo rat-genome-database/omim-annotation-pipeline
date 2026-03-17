@@ -1,5 +1,6 @@
 package edu.mcw.rgd.dataload.omim;
 
+import edu.mcw.rgd.process.MemoryMonitor;
 import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +23,9 @@ public class Manager {
     public static void main(String[] args) throws Exception {
 
         long time0 = System.currentTimeMillis();
+
+        MemoryMonitor memoryMonitor = new MemoryMonitor();
+        memoryMonitor.start();
 
         DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
         new XmlBeanDefinitionReader(bf).loadBeanDefinitions(new FileSystemResource("properties/AppConfigure.xml"));
@@ -70,6 +74,9 @@ public class Manager {
 
             throw new Exception(e);
         }
+
+        memoryMonitor.stop();
+        logStatus.info(memoryMonitor.getSummary());
 
         logStatus.info("=== OK === elapsed "+Utils.formatElapsedTime(time0, System.currentTimeMillis())+"\n");
     }
