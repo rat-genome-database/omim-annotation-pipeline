@@ -1,3 +1,7 @@
+Mar 24, 2026
+  consolidated version into Manager; removed version field from AnnotationLoader and OmimLoader
+  updated dependencies
+
 Mar 17, 2026
   added memory usage monitoring
   updated README.md
