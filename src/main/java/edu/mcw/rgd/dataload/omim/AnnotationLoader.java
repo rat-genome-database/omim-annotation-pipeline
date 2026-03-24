@@ -18,7 +18,6 @@ import java.util.*;
  */
 public class AnnotationLoader {
 
-    private String version;
     private OmimDAO dao = new OmimDAO();
     private int createdBy;
     private int refRgdId;
@@ -39,8 +38,6 @@ public class AnnotationLoader {
         counters = new CounterPool();
 
         log.info("   "+dao.getConnectionInfo());
-        log.info(getVersion()+"\n");
-
         // load all active disease terms
         List<Term> terms = dao.getActiveRDOTerms();
         List<OmimAnnotRecord> records = new ArrayList<>(terms.size());
@@ -218,14 +215,6 @@ public class AnnotationLoader {
                 counters.increment("ANNOTATIONS_MATCHING");
             }
         }
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     public void setCreatedBy(int createdBy) {

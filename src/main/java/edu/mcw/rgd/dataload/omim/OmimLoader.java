@@ -12,7 +12,6 @@ import java.util.List;
  * Created by mtutaj on 6/2/2017.
  */
 public class OmimLoader {
-    private String version;
     private PreProcessor preProcessor;
     private QCProcessor qcProcessor;
 
@@ -26,7 +25,6 @@ public class OmimLoader {
         qcProcessor.init(dao, counters);
         log.info("   "+dao.getConnectionInfo());
 
-        log.info(getVersion());
 
         List<OmimRecord> incomingData = preProcessor.downloadAndParseOmimData();
 
@@ -96,14 +94,6 @@ public class OmimLoader {
         } else if( r==2 ){
             counters.increment("OMIM_ENTRIES_UPDATED");
         }
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     public PreProcessor getPreProcessor() {
