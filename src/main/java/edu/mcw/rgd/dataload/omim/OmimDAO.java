@@ -225,6 +225,14 @@ public class OmimDAO {
     }
 
     /**
+     * count of disease (aspect 'D') annotations for the given reference and data source.
+     * Used by AnnotationLoader to record ANNOTATIONS_COUNT_AT_BEGIN before any inserts happen.
+     */
+    public int getAnnotationCount(int refRgdId, String dataSource) throws Exception {
+        return annotationDAO.getCountOfAnnotationsByReference(refRgdId, dataSource, "D");
+    }
+
+    /**
      * delete all pipeline annotations older than given date
      *
      * @throws Exception on spring framework dao failure
@@ -235,12 +243,14 @@ public class OmimDAO {
         // convert delete-threshold string to number; i.e. '5%' --> '5'
         int staleAnnotDeleteThresholdPerc = Integer.parseInt(staleAnnotDeleteThresholdStr.substring(0, staleAnnotDeleteThresholdStr.length()-1));
         // compute maximum allowed number of stale annots to be deleted
+        // NOTE: ANNOTATIONS_COUNT_AT_BEGIN is recorded by the caller before the insert pass; this local count
+        // is only used for the threshold calculation and reflects the post-insert state, which is what we want
+        // (so the threshold scales with the live data set size).
         int annotCount = annotationDAO.getCountOfAnnotationsByReference(refRgdId, dataSource, "D");
         int staleAnnotDeleteLimit = (staleAnnotDeleteThresholdPerc * annotCount) / 100;
 
         List<Annotation> staleAnnots = annotationDAO.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "D");
 
-        counters.add("ANNOTATIONS_COUNT_AT_BEGIN", annotCount);
         if( staleAnnots.size()> 0 ) {
             counters.add("ANNOTATIONS_OBSOLETE  delete limit ("+ staleAnnotDeleteThresholdStr + ")",  staleAnnotDeleteLimit);
             counters.add("ANNOTATIONS_OBSOLETE  to be deleted", staleAnnots.size());

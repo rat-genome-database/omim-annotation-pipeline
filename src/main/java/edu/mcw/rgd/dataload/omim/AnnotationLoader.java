@@ -38,6 +38,11 @@ public class AnnotationLoader {
         counters = new CounterPool();
 
         log.info("   "+dao.getConnectionInfo());
+
+        // record the pre-pipeline annotation count before any inserts happen so that
+        // ANNOTATIONS_COUNT_AT_END - ANNOTATIONS_COUNT_AT_BEGIN reflects INSERTED - DELETED
+        counters.add("ANNOTATIONS_COUNT_AT_BEGIN", dao.getAnnotationCount(getRefRgdId(), getDataSource()));
+
         // load all active disease terms
         List<Term> terms = dao.getActiveRDOTerms();
         List<OmimAnnotRecord> records = new ArrayList<>(terms.size());
